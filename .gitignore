@@ -6,6 +6,7 @@
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/inspectionProfiles/Project_Default.xml
 venv/
+.venv/
 utils/__pycache__/PFProcessServer.cpython-310.pyc
 soccer/__pycache__/
 scripts/proxy

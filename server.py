@@ -123,6 +123,6 @@ def serve(port):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run play maker server')
-    parser.add_argument('-p', '--g-port', required=False, help='The port of the server', default=50051)
+    parser.add_argument('-p', '--rpc-port', required=False, help='The port of the server', default=50051)
     args = parser.parse_args()
-    serve(args.g_port)
+    serve(args.rpc_port)

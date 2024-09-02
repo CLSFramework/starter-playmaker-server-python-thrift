@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 def run_server_script(args):
     # Start the server.py script as a new process group
     process = subprocess.Popen(
-        ['python3', 'server.py', '--g-port', args.g_port],
+        ['python3', 'server.py', '--rpc-port', args.rpc_port],
         preexec_fn=os.setsid,  # Create a new session and set the process group ID
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT  # Capture stderr and redirect it to stdout
@@ -23,7 +23,7 @@ def run_server_script(args):
 def run_start_script(args):
     # Start the start.sh script in its own directory as a new process group
     process = subprocess.Popen(
-        ['bash', 'start.sh', '-t', args.team_name, '--g-port', args.g_port],
+        ['bash', 'start.sh', '-t', args.team_name, '--rpc-port', args.rpc_port],
         cwd='scripts/proxy',  # Corrected directory to where start.sh is located
         preexec_fn=os.setsid,  # Create a new session and set the process group ID
         stdout=subprocess.PIPE,
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # Set up argument parsing
     parser = argparse.ArgumentParser(description='Run server and team scripts.')
     parser.add_argument('-t', '--team_name', required=False, help='The name of the team', default='CLS')
-    parser.add_argument('--g-port', required=False, help='The port of the server', default=50051)
+    parser.add_argument('--rpc-port', required=False, help='The port of the server', default='50051')
     args = parser.parse_args()
 
     try:

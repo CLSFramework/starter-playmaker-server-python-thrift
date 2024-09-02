@@ -9,14 +9,14 @@ if [! -d scripts/proxy ]; then
 fi
 
 team_name="CLS"
-g_port=50051
+rpc_port=50051
 
 # help function
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  -t team_name: specify team name"
-    echo "  --g-port GRPC PORT - specifies grpc port (default: 50051)"
+    echo "  --rpc-port RPC PORT - specifies rpc port (default: 50051)"
     exit 1
 }
 
@@ -27,8 +27,8 @@ do
       team_name=$2
       shift
       ;;
-    --g-port)
-      g_port=$2
+    --rpc-port)
+      rpc_port=$2
       shift
       ;;
     *)
@@ -49,7 +49,7 @@ python3 check_requirements.py
 
 # Start server.py in the background
 echo "Starting server.py..."
-python3 server.py --g-port $g_port &
+python3 server.py --rpc-port $rpc_port &
 server_pid=$!
 
 # Function to kill server and team processes on exit
@@ -68,7 +68,7 @@ sleep 2
 # Start start.sh script in the correct directory with arguments
 echo "Starting start.sh with team name: $team_name and ..."
 cd scripts/proxy
-bash start.sh -t "$team_name" --g-port $g_port &
+bash start.sh -t "$team_name" --rpc-port $rpc_port &
 start_pid=$!
 
 # Wait for both background processes to finish
