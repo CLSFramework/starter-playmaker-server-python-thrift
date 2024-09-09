@@ -14,7 +14,7 @@ class IAgent(ABC):
         self.serverParams: Union[ServerParam, None] = None
         self.playerParams: Union[PlayerParam, None] = None
         self.playerTypes: Union[PlayerType, dict[PlayerType]] = {}
-        self.debug_mode: bool = False
+        self.debug_mode: bool = True
 
     def set_server_param(self, server_param: ServerParam):
         self.serverParams = server_param
