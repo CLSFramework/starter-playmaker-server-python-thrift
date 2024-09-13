@@ -21,7 +21,7 @@ class Shoot:
         RightGoal = RpcVector2D ( agent.serverParams.pitch_half_length , agent.serverParams.goal_width ) # Lower Pole 
         LeftGoal = RpcVector2D ( agent.serverParams.pitch_half_length , -agent.serverParams.goal_width ) # Upper Pole 
         
-        if BallPosition.dist(CenterGoal) <= 25:
+        if BallPosition.dist(CenterGoal) <= 25.0:
 
             if LeftGoal.dist(BallPosition) < RightGoal.dist(BallPosition):
                 agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(LeftGoal,
