@@ -7,6 +7,10 @@ from soccer.ttypes import *
 
 class ClearBall :
 
+    def __init__(self):
+        pass
+    
+
     def Decision(agent: IAgent):
         BallPosition = agent.wm.ball.position
         Target = Vector2D(agent.serverParams.pitch_half_length,0.0)
