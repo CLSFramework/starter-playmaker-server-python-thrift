@@ -1193,11 +1193,13 @@ class Self(object):
      - view_width
      - type_id
      - kick_rate
+     - recovery
+     - stamina_capacity
 
     """
 
 
-    def __init__(self, position=None, seen_position=None, heard_position=None, velocity=None, seen_velocity=None, pos_count=None, seen_pos_count=None, heard_pos_count=None, vel_count=None, seen_vel_count=None, ghost_count=None, id=None, side=None, uniform_number=None, uniform_number_count=None, is_goalie=None, body_direction=None, body_direction_count=None, face_direction=None, face_direction_count=None, point_to_direction=None, point_to_direction_count=None, is_kicking=None, dist_from_ball=None, angle_from_ball=None, ball_reach_steps=None, is_tackling=None, relative_neck_direction=None, stamina=None, is_kickable=None, catch_probability=None, tackle_probability=None, foul_probability=None, view_width=None, type_id=None, kick_rate=None,):
+    def __init__(self, position=None, seen_position=None, heard_position=None, velocity=None, seen_velocity=None, pos_count=None, seen_pos_count=None, heard_pos_count=None, vel_count=None, seen_vel_count=None, ghost_count=None, id=None, side=None, uniform_number=None, uniform_number_count=None, is_goalie=None, body_direction=None, body_direction_count=None, face_direction=None, face_direction_count=None, point_to_direction=None, point_to_direction_count=None, is_kicking=None, dist_from_ball=None, angle_from_ball=None, ball_reach_steps=None, is_tackling=None, relative_neck_direction=None, stamina=None, is_kickable=None, catch_probability=None, tackle_probability=None, foul_probability=None, view_width=None, type_id=None, kick_rate=None, recovery=None, stamina_capacity=None,):
         self.position = position
         self.seen_position = seen_position
         self.heard_position = heard_position
@@ -1234,6 +1236,8 @@ class Self(object):
         self.view_width = view_width
         self.type_id = type_id
         self.kick_rate = kick_rate
+        self.recovery = recovery
+        self.stamina_capacity = stamina_capacity
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1429,6 +1433,16 @@ class Self(object):
                     self.kick_rate = iprot.readDouble()
                 else:
                     iprot.skip(ftype)
+            elif fid == 37:
+                if ftype == TType.DOUBLE:
+                    self.recovery = iprot.readDouble()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 38:
+                if ftype == TType.DOUBLE:
+                    self.stamina_capacity = iprot.readDouble()
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -1582,6 +1596,14 @@ class Self(object):
         if self.kick_rate is not None:
             oprot.writeFieldBegin('kick_rate', TType.DOUBLE, 36)
             oprot.writeDouble(self.kick_rate)
+            oprot.writeFieldEnd()
+        if self.recovery is not None:
+            oprot.writeFieldBegin('recovery', TType.DOUBLE, 37)
+            oprot.writeDouble(self.recovery)
+            oprot.writeFieldEnd()
+        if self.stamina_capacity is not None:
+            oprot.writeFieldBegin('stamina_capacity', TType.DOUBLE, 38)
+            oprot.writeDouble(self.stamina_capacity)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -1957,11 +1979,15 @@ class WorldModel(object):
      - their_team_score
      - is_penalty_kick_mode
      - helios_home_positions
+     - our_defense_line_x
+     - their_defense_line_x
+     - our_defense_player_line_x
+     - their_defense_player_line_x
 
     """
 
 
-    def __init__(self, intercept_table=None, our_team_name=None, their_team_name=None, our_side=None, last_set_play_start_time=None, myself=None, ball=None, teammates=None, opponents=None, unknowns=None, our_players_dict=None, their_players_dict=None, our_goalie_uniform_number=None, their_goalie_uniform_number=None, offside_line_x=None, offside_line_x_count=None, kickable_teammate_id=None, kickable_opponent_id=None, last_kick_side=None, last_kicker_uniform_number=None, cycle=None, game_mode_type=None, left_team_score=None, right_team_score=None, is_our_set_play=None, is_their_set_play=None, stoped_cycle=None, our_team_score=None, their_team_score=None, is_penalty_kick_mode=None, helios_home_positions=None,):
+    def __init__(self, intercept_table=None, our_team_name=None, their_team_name=None, our_side=None, last_set_play_start_time=None, myself=None, ball=None, teammates=None, opponents=None, unknowns=None, our_players_dict=None, their_players_dict=None, our_goalie_uniform_number=None, their_goalie_uniform_number=None, offside_line_x=None, offside_line_x_count=None, kickable_teammate_id=None, kickable_opponent_id=None, last_kick_side=None, last_kicker_uniform_number=None, cycle=None, game_mode_type=None, left_team_score=None, right_team_score=None, is_our_set_play=None, is_their_set_play=None, stoped_cycle=None, our_team_score=None, their_team_score=None, is_penalty_kick_mode=None, helios_home_positions=None, our_defense_line_x=None, their_defense_line_x=None, our_defense_player_line_x=None, their_defense_player_line_x=None,):
         self.intercept_table = intercept_table
         self.our_team_name = our_team_name
         self.their_team_name = their_team_name
@@ -1993,6 +2019,10 @@ class WorldModel(object):
         self.their_team_score = their_team_score
         self.is_penalty_kick_mode = is_penalty_kick_mode
         self.helios_home_positions = helios_home_positions
+        self.our_defense_line_x = our_defense_line_x
+        self.their_defense_line_x = their_defense_line_x
+        self.our_defense_player_line_x = our_defense_player_line_x
+        self.their_defense_player_line_x = their_defense_player_line_x
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2200,6 +2230,26 @@ class WorldModel(object):
                     iprot.readMapEnd()
                 else:
                     iprot.skip(ftype)
+            elif fid == 32:
+                if ftype == TType.DOUBLE:
+                    self.our_defense_line_x = iprot.readDouble()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 33:
+                if ftype == TType.DOUBLE:
+                    self.their_defense_line_x = iprot.readDouble()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 34:
+                if ftype == TType.DOUBLE:
+                    self.our_defense_player_line_x = iprot.readDouble()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 35:
+                if ftype == TType.DOUBLE:
+                    self.their_defense_player_line_x = iprot.readDouble()
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -2354,6 +2404,22 @@ class WorldModel(object):
                 oprot.writeI32(kiter53)
                 viter54.write(oprot)
             oprot.writeMapEnd()
+            oprot.writeFieldEnd()
+        if self.our_defense_line_x is not None:
+            oprot.writeFieldBegin('our_defense_line_x', TType.DOUBLE, 32)
+            oprot.writeDouble(self.our_defense_line_x)
+            oprot.writeFieldEnd()
+        if self.their_defense_line_x is not None:
+            oprot.writeFieldBegin('their_defense_line_x', TType.DOUBLE, 33)
+            oprot.writeDouble(self.their_defense_line_x)
+            oprot.writeFieldEnd()
+        if self.our_defense_player_line_x is not None:
+            oprot.writeFieldBegin('our_defense_player_line_x', TType.DOUBLE, 34)
+            oprot.writeDouble(self.our_defense_player_line_x)
+            oprot.writeFieldEnd()
+        if self.their_defense_player_line_x is not None:
+            oprot.writeFieldBegin('their_defense_player_line_x', TType.DOUBLE, 35)
+            oprot.writeDouble(self.their_defense_player_line_x)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
