@@ -1,9 +1,11 @@
 import pyrusgeom.soccer_math as smath
 from pyrusgeom.soccer_math import *
 from pyrusgeom.geom_2d import *
+from pyrusgeom.vector_2d import Vector2D
+from pyrusgeom.angle_deg import AngleDeg
 from src.IAgent import IAgent
 import math
-from soccer.ttypes import PlayerType, Player, GameModeType, AngleDeg, Vector2D, ServerParam
+from soccer.ttypes import PlayerType, Player, GameModeType, ServerParam
 
 
 class Tools:
