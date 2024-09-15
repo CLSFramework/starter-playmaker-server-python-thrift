@@ -2,7 +2,6 @@ from src.IDecisionMaker import IDecisionMaker
 from src.IAgent import IAgent
 from pyrusgeom.soccer_math import *
 from pyrusgeom.geom_2d import *
-from soccer.ttypes import PlayerAction, Body_Intercept, Neck_TurnToBall, Body_GoToPoint, DebugClient, LoggerLevel, HeliosBasicMove
 from src.BhvBasicMove import BhvBasicMove
 
 
@@ -11,5 +10,7 @@ class NoBallDecisionMaker(IDecisionMaker):
         pass
     
     def make_decision(self, agent: IAgent):
-        BhvBasicMove.Decision(agent)
-        
+        # Queued actions are reversed and send here
+        bhv_basic_move_actions = list(reversed(BhvBasicMove.Decision(agent)))
+        for act in bhv_basic_move_actions:
+            agent.add_action(act)
