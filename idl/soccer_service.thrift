@@ -84,6 +84,12 @@ enum LoggerLevel {
   PLAN = 1048576
 }
 
+enum CardType {
+  NO_CARD = 0,
+  YELLOW = 1,
+  RED = 2
+}
+
 struct Player {
   1: RpcVector2D position,
   2: RpcVector2D seen_position,
@@ -156,6 +162,7 @@ struct Self {
   36: double kick_rate,
   37: double recovery,
   38: double stamina_capacity
+  39: CardType card
 }
 
 enum InterceptActionType {

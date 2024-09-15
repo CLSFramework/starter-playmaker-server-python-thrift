@@ -144,6 +144,23 @@ class LoggerLevel(object):
         "PLAN": 1048576,
     }
 
+class CardType(object):
+    NO_CARD = 0
+    YELLOW = 1
+    RED = 2
+
+    _VALUES_TO_NAMES = {
+        0: "NO_CARD",
+        1: "YELLOW",
+        2: "RED",
+    }
+
+    _NAMES_TO_VALUES = {
+        "NO_CARD": 0,
+        "YELLOW": 1,
+        "RED": 2,
+    }
+
 
 class InterceptActionType(object):
     UNKNOWN_Intercept_Action_Type = 0
@@ -1195,11 +1212,12 @@ class Self(object):
      - kick_rate
      - recovery
      - stamina_capacity
+     - card
 
     """
 
 
-    def __init__(self, position=None, seen_position=None, heard_position=None, velocity=None, seen_velocity=None, pos_count=None, seen_pos_count=None, heard_pos_count=None, vel_count=None, seen_vel_count=None, ghost_count=None, id=None, side=None, uniform_number=None, uniform_number_count=None, is_goalie=None, body_direction=None, body_direction_count=None, face_direction=None, face_direction_count=None, point_to_direction=None, point_to_direction_count=None, is_kicking=None, dist_from_ball=None, angle_from_ball=None, ball_reach_steps=None, is_tackling=None, relative_neck_direction=None, stamina=None, is_kickable=None, catch_probability=None, tackle_probability=None, foul_probability=None, view_width=None, type_id=None, kick_rate=None, recovery=None, stamina_capacity=None,):
+    def __init__(self, position=None, seen_position=None, heard_position=None, velocity=None, seen_velocity=None, pos_count=None, seen_pos_count=None, heard_pos_count=None, vel_count=None, seen_vel_count=None, ghost_count=None, id=None, side=None, uniform_number=None, uniform_number_count=None, is_goalie=None, body_direction=None, body_direction_count=None, face_direction=None, face_direction_count=None, point_to_direction=None, point_to_direction_count=None, is_kicking=None, dist_from_ball=None, angle_from_ball=None, ball_reach_steps=None, is_tackling=None, relative_neck_direction=None, stamina=None, is_kickable=None, catch_probability=None, tackle_probability=None, foul_probability=None, view_width=None, type_id=None, kick_rate=None, recovery=None, stamina_capacity=None, card=None,):
         self.position = position
         self.seen_position = seen_position
         self.heard_position = heard_position
@@ -1238,6 +1256,7 @@ class Self(object):
         self.kick_rate = kick_rate
         self.recovery = recovery
         self.stamina_capacity = stamina_capacity
+        self.card = card
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1443,6 +1462,11 @@ class Self(object):
                     self.stamina_capacity = iprot.readDouble()
                 else:
                     iprot.skip(ftype)
+            elif fid == 39:
+                if ftype == TType.I32:
+                    self.card = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -1604,6 +1628,10 @@ class Self(object):
         if self.stamina_capacity is not None:
             oprot.writeFieldBegin('stamina_capacity', TType.DOUBLE, 38)
             oprot.writeDouble(self.stamina_capacity)
+            oprot.writeFieldEnd()
+        if self.card is not None:
+            oprot.writeFieldBegin('card', TType.I32, 39)
+            oprot.writeI32(self.card)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
