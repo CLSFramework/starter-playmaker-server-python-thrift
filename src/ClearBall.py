@@ -27,7 +27,7 @@ class ClearBall :
                 else :
                     target = Vector2D(-agent.serverParams.pitch_half_length, -20.0)
             else:
-                if ball_pos().y > 0.0 :
+                if ball_pos.y() > 0.0 :
                     target = Vector2D(ball_pos.x(), 34.0)
                 else : 
                     target = Vector2D(ball_pos.x(), -34.0)
