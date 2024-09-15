@@ -31,8 +31,9 @@ class ClearBall :
                     target = Vector2D(ball_pos.x(), 34.0)
                 else : 
                     target = Vector2D(ball_pos.x(), -34.0)
-        agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(target.x(), target.y()),
+        agent.add_log_message(LoggerLevel.CLEAR, f": Clearing Ball to {target}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
+        return PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(target.x(), target.y()),
                                                                         2.7,
                                                                             2.7,
-                                                                                2)))
+                                                                                2))
         

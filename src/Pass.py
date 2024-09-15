@@ -33,13 +33,15 @@ class Pass:
                 if i.position.x > best_target.position.x :
                     best_target = i.position
             if not wm.game_mode_type == GameModeType.PlayOn:
-                agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(best_target,
-                    2.7,
-                        2.5,
-                            1)))
+                agent.add_log_message(LoggerLevel.PASS, f": Passing to {best_target}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
+                return PlayerAction(body_smart_kick=Body_SmartKick(best_target,
+                                                                    2.7,
+                                                                        2.5,
+                                                                            1))
             else :
-                agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(best_target,
-                    2.7,
-                        2.5,
-                            1)))  
+                agent.add_log_message(LoggerLevel.PASS, f": Passing to {best_target}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
+                return PlayerAction(body_smart_kick=Body_SmartKick(best_target,
+                                                                    2.7,
+                                                                        2.5,
+                                                                            1))
                 

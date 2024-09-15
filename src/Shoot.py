@@ -21,16 +21,16 @@ class Shoot:
 
             if left_goal.dist(ball_pos) < right_goal.dist(ball_pos):
                 agent.add_log_message(LoggerLevel.SHOOT, f": Shooting to {left_goal}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
-                agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(left_goal.x(), left_goal.y()),
+                return PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(left_goal.x(), left_goal.y()),
                                                                                 ball_max_velocity ,
                                                                                     0.1 ,
-                                                                                        2)))
+                                                                                        2))
             else :
                 agent.add_log_message(LoggerLevel.SHOOT, f": Shooting to {right_goal}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
-                agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(right_goal.x(), right_goal.y()),
+                return PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(right_goal.x(), right_goal.y()),
                                                                                 ball_max_velocity ,
                                                                                     0.1 ,
-                                                                                        2)))
+                                                                                        2))
 
 
         
