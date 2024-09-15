@@ -3,6 +3,7 @@ from src.IAgent import IAgent
 from pyrusgeom.soccer_math import *
 from pyrusgeom.geom_2d import *
 from soccer.ttypes import PlayerAction, Body_Intercept, Neck_TurnToBall, Body_GoToPoint, DebugClient, LoggerLevel, HeliosBasicMove
+from src.BhvBasicMove import BhvBasicMove
 
 
 class NoBallDecisionMaker(IDecisionMaker):
@@ -10,6 +11,5 @@ class NoBallDecisionMaker(IDecisionMaker):
         pass
     
     def make_decision(self, agent: IAgent):
-        agent.add_action(PlayerAction(helios_basic_move=HeliosBasicMove()))
-        #agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+        BhvBasicMove.execute(agent)
         
