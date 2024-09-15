@@ -12,25 +12,26 @@ class ClearBall :
     
 
     def Decision(agent: IAgent):
-        BallPosition = agent.wm.ball.position
-        Target = Vector2D(agent.serverParams.pitch_half_length,0.0)
-        if BallPosition.x > -25.0 :
-            if BallPosition.dist(Vector2D(0.0,-34.0)) < BallPosition.dist(Vector2D(0.0,34.0)) :
-                Target = Vector2D(0.0,-34.0)
+        wm = agent.wm
+        ball_pos = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        target = Vector2D(agent.serverParams.pitch_half_length, 0.0)
+        if ball_pos.x() > -25.0 :
+            if ball_pos.dist(Vector2D(0.0, -agent.serverParams.pitch_half_width)) < ball_pos.dist(Vector2D(0.0, agent.serverParams.pitch_half_width)) :
+                target = Vector2D(0.0,-34.0)
             else :
-                Target = Vector2D(0.0,34.0)
+                target = Vector2D(0.0,34.0)
         else :
-            if abs(BallPosition.y) < 10 and BallPosition.x < -10.0 :
-                if BallPosition.y > 0.0 :
-                    Target = Vector2D(-agent.serverParams.pitch_half_length,20.0)
+            if abs(ball_pos.y()) < 10 and ball_pos.x() < -10.0 :
+                if ball_pos.y() > 0.0 :
+                    target = Vector2D(-agent.serverParams.pitch_half_length, 20.0)
                 else :
-                    Target = Vector2D(-agent.serverParams.pitch_half_length,-20.0)
-            else :
-                if BallPosition.y > 0.0 :
-                    Target = Vector2D(BallPosition.x,34.0)
+                    target = Vector2D(-agent.serverParams.pitch_half_length, -20.0)
+            else:
+                if ball_pos().y > 0.0 :
+                    target = Vector2D(ball_pos.x(), 34.0)
                 else : 
-                    Target = Vector2D(BallPosition.x,-34.0)
-        agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(Target,
+                    target = Vector2D(ball_pos.x(), -34.0)
+        agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(target.x(), target.y()),
                                                                         2.7,
                                                                             2.7,
                                                                                 2)))

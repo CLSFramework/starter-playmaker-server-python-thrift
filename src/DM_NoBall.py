@@ -11,5 +11,5 @@ class NoBallDecisionMaker(IDecisionMaker):
         pass
     
     def make_decision(self, agent: IAgent):
-        BhvBasicMove.execute(agent)
+        BhvBasicMove.Decision(agent)
         

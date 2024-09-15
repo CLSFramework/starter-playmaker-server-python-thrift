@@ -6,6 +6,7 @@ from pyrusgeom.angle_deg import AngleDeg
 from src.IAgent import IAgent
 import math
 from soccer.ttypes import PlayerType, Player, GameModeType, ServerParam
+from copy import copy
 
 
 class Tools:
@@ -240,3 +241,23 @@ class Tools:
                 return cycle, ball_pos
         return 1000, None
 
+    def ExistOpponentIn(agent: IAgent, region: Region2D):
+        for i in agent.wm.opponents:
+            if region.contains(Vector2D(i.position.x, i.position.y)):
+                return True
+    
+    def swap(x, y):
+        return (copy(y), copy(x))
+    
+    def OpponentsFromSelf(agent: IAgent):
+
+        opp = agent.wm.opponents
+        for i in opp:
+            if i == None or i.uniform_number == agent.wm.myself.uniform_number or i.uniform_number < 0:
+                opp.remove(i)
+        for i in opp:
+            for j in range(i + 1, len(opp)):
+                if i.dist_from_self > opp[j].dist_from_self:
+                    Tools.swap(i, opp[j])
+        
+        return opp

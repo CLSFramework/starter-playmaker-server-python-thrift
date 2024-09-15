@@ -10,7 +10,7 @@ class BhvBasicMove:
         pass
     
     
-    def execute(agent: IAgent):
+    def Decision(agent: IAgent):
         # Player action without ball
         
         wm = agent.wm
