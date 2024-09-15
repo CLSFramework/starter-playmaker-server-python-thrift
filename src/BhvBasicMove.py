@@ -1,6 +1,7 @@
 from src.IAgent import IAgent
-from soccer.ttypes import PlayerAction, RpcVector2D, Body_TackleToPoint, Body_Intercept, Body_GoToPoint, Body_TurnToBall
+from soccer.ttypes import PlayerAction, Body_Intercept, Body_GoToPoint, Body_TurnToBall
 from src.Strategy import Strategy
+from src.BhvBasicTackle import BhvBasicTackle
 
 
 class BhvBasicMove:
@@ -14,7 +15,9 @@ class BhvBasicMove:
         
         wm = agent.wm
         actions = [] # actions will be queued here
-        actions.append(PlayerAction(body_tackle_to_point=Body_TackleToPoint(RpcVector2D(0, 0), 0.8, 20)))
+        #actions.append(PlayerAction(body_tackle_to_point=Body_TackleToPoint(RpcVector2D(0, 0), 0.8, 20)))
+        
+        actions += BhvBasicTackle(0.8, 80).Decision(agent)
         
         self_min = wm.intercept_table.self_reach_steps
         mate_min = wm.intercept_table.first_teammate_reach_steps

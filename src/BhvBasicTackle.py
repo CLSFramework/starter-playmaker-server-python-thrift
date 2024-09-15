@@ -1,7 +1,5 @@
 from src.IAgent import IAgent
-from soccer.ttypes import PlayerAction, RpcVector2D, Body_TackleToPoint, Body_Intercept, Body_GoToPoint, Body_TurnToBall, CardType
-from src.Strategy import Strategy
-
+from soccer.ttypes import PlayerAction, CardType, Tackle
 from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.soccer_math import inertia_n_step_point
 from pyrusgeom.ray_2d import Ray2D
@@ -48,17 +46,31 @@ class BhvBasicTackle:
             if intersect.is_valid() and intersect.abs_y() < (agent.serverParams.goal_width / 2) + 1:
                 ball_will_be_in_our_goal = True
                 
-        if opp_min > 1 or ball_will_be_in_our_goal or (opp_min < self_min - 3 and opp_min < mate_min - 3) or (self_min >= 5 and ball_pos.dist2(Vector2D(agent.serverParams.pitch_half_length, 0)) < 100) and ((Vector2D(agent.serverParams.pitch_half_length, 0) - self_pos).th() - wm.myself.body_direction).abs() < 45:
+        if opp_min < 2 or ball_will_be_in_our_goal or (opp_min < self_min - 3 and opp_min < mate_min - 3) or (self_min >= 5 and ball_pos.dist2(Vector2D(agent.serverParams.pitch_half_length, 0)) < 100) and ((Vector2D(agent.serverParams.pitch_half_length, 0) - self_pos).th() - wm.myself.body_direction).abs() < 45:
             # Try tackle
             pass
         else:
             return action
 
-        return BhvBasicTackle.execute(self, agent, use_foul)
+        return BhvBasicTackle.ExecuteOldVersion(self, agent, use_foul)
 
     
-    def execute(self, agent: IAgent, use_foul: bool):
-        return
+    def ExecuteOldVersion(self, agent: IAgent, use_foul: bool):
+        
+        wm = agent.wm
+        actions = []
+        tackle_power = agent.serverParams.max_tackle_power
+        
+        if abs(wm.myself.body_direction) < self.body_thr:
+            actions.append(PlayerAction(tackle=Tackle(tackle_power, use_foul)))
+            
+        tackle_power = -agent.serverParams.max_back_tackle_power
+        
+        if tackle_power < 0.0 and abs(wm.myself.body_direction) > 180 - self.body_thr:
+            actions.append(PlayerAction(tackle=Tackle(tackle_power)))
+        
+        return actions
+        
 
         
         
