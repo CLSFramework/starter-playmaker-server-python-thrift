@@ -13,7 +13,6 @@ class BhvBasicTackle:
 
     def Decision(self, agent: IAgent):
         
-        action = []
         wm = agent.wm
         use_foul = False
         tackle_prob = wm.myself.tackle_probability
@@ -22,7 +21,7 @@ class BhvBasicTackle:
             use_foul = True
             
         if tackle_prob < self.min_prob:
-            return action
+            return
         
         self_min = wm.intercept_table.self_reach_steps
         mate_min = wm.intercept_table.first_teammate_reach_steps
@@ -50,7 +49,7 @@ class BhvBasicTackle:
             # Try tackle
             pass
         else:
-            return action
+            return
 
         return BhvBasicTackle.ExecuteOldVersion(self, agent, use_foul)
 
@@ -58,18 +57,17 @@ class BhvBasicTackle:
     def ExecuteOldVersion(self, agent: IAgent, use_foul: bool):
         
         wm = agent.wm
-        actions = []
         tackle_power = agent.serverParams.max_tackle_power
         
         if abs(wm.myself.body_direction) < self.body_thr:
-            actions.append(PlayerAction(tackle=Tackle(tackle_power, use_foul)))
+            return PlayerAction(tackle=Tackle(tackle_power, use_foul))
             
         tackle_power = -agent.serverParams.max_back_tackle_power
         
         if tackle_power < 0.0 and abs(wm.myself.body_direction) > 180 - self.body_thr:
-            actions.append(PlayerAction(tackle=Tackle(tackle_power)))
+            return PlayerAction(tackle=Tackle(tackle_power))
         
-        return actions
+        return
         
 
         
