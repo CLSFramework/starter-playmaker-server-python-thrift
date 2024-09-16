@@ -1,5 +1,5 @@
 from src.IAgent import IAgent
-from soccer.ttypes import PlayerAction, RpcVector2D, Body_TackleToPoint, Body_Intercept, Body_GoToPoint, Body_TurnToBall
+from soccer.ttypes import PlayerAction, Body_Intercept, Body_GoToPoint, Body_TurnToBall
 from src.Strategy import Strategy
 from src.BhvBasicTackle import BhvBasicTackle
 
@@ -8,12 +8,13 @@ class BhvBasicMove:
     def __init__(self):
         pass
     
-    
     def Decision(agent: IAgent):
         # Player action without ball
         
         wm = agent.wm
         actions = [] # actions will be queued here
+        
+        actions += [tackle] if (tackle := BhvBasicTackle(0.8, 80).Decision(agent)) is not None else []
         
         actions += [tackle] if (tackle := BhvBasicTackle(0.8, 80).Decision(agent)) is not None else []
         
