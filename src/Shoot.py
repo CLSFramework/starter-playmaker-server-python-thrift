@@ -8,7 +8,7 @@ class Shoot:
     def __init__(self):
         pass
     
-    def decision(agent: IAgent):
+    def Decision(agent: IAgent):
         wm = agent.wm
         ball_pos = Vector2D(wm.ball.position.x, wm.ball.position.y)
         ball_max_velocity = agent.serverParams.ball_speed_max
@@ -31,6 +31,7 @@ class Shoot:
                                                                                 ball_max_velocity ,
                                                                                     0.1 ,
                                                                                         2))
+        return
 
 
         

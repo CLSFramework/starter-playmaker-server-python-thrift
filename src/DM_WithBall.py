@@ -21,22 +21,22 @@ class WithBallDecisionMaker(IDecisionMaker):
                                         agent.wm.myself.position.x ,
                                             agent.wm.myself.position.y - 2 ,
                                                 '\033[31m')
-        
         actions = []
-        actions.append(Shoot.decision(agent))
+        actions += [shoot] if (shoot := Shoot.Decision(agent)) is not None else []
         opps = Tools.OpponentsFromSelf(agent)
         nearest_opp = opps[0] if opps else None
         nearest_opp_dist = nearest_opp.dist_from_self if nearest_opp else 1000.0
         
         if nearest_opp_dist < 10:
-            actions.append(Pass.Decision(agent))
+            actions += [passing] if (passing := Pass.Decision(agent)) is not None else []
             
-        actions.append(Dribble.Decision(agent))
+        actions += [dribble] if (dribble := Dribble.Decision(agent)) is not None else []
         
         if nearest_opp_dist > 2.5:
             actions.append(PlayerAction(body_hold_ball=Body_HoldBall()))
 
         actions.append(ClearBall.Decision(agent))
+        
         #Sending actions' queue
         Queue = list(reversed(actions))
 

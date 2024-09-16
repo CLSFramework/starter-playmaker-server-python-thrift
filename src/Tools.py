@@ -255,9 +255,9 @@ class Tools:
         for i in opp:
             if i == None or i.uniform_number == agent.wm.myself.uniform_number or i.uniform_number < 0:
                 opp.remove(i)
-        for i in opp:
+        for i in range(0, len(opp)):
             for j in range(i + 1, len(opp)):
-                if i.dist_from_self > opp[j].dist_from_self:
-                    Tools.swap(i, opp[j])
+                if opp[i].dist_from_self > opp[j].dist_from_self:
+                    Tools.swap(opp[i], opp[j])
         
         return opp
