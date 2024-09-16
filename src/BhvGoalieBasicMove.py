@@ -19,13 +19,14 @@ class BhvGoalieBasicMove:
         self_min = wm.intercept_table.self_reach_steps
         mate_min = wm.intercept_table.first_teammate_reach_steps
         opp_min = wm.intercept_table.first_opponent_reach_steps
-        
-        move_point = BhvGoalieBasicMove.GetTargetPoint(agent)
+    
         
         actions += [tackle] if (tackle := BhvBasicTackle(0.8, 80).Decision(agent)) is not None else []
         
         if self_min < opp_min and self_min < mate_min:
-            actions.append(agent.add_action(PlayerAction(body_intercept=Body_Intercept())))
+            actions.append(PlayerAction(body_intercept=Body_Intercept()))
+            
+        move_point = BhvGoalieBasicMove.GetTargetPoint(agent)
         
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(move_point.x(), move_point.y()), 1, 100)))
         
@@ -41,7 +42,6 @@ class BhvGoalieBasicMove:
         
         ball_reach_step = 0
         
-        self_min = wm.intercept_table.self_reach_steps
         mate_min = wm.intercept_table.first_teammate_reach_steps
         opp_min = wm.intercept_table.first_opponent_reach_steps
         
@@ -74,7 +74,7 @@ class BhvGoalieBasicMove:
             target_point = Vector2D(base_move_x, agent.serverParams.goal_width / 2 - 1)
             
             if base_pos.y() < 0:
-                target_point.y() *= -1
+                target_point.set_y(-target_point.y())
             
             return target_point
 
@@ -93,7 +93,7 @@ class BhvGoalieBasicMove:
             ball_point = inertia_n_step_point(base_pos, ball_velocity, ball_pred_cycle, agent.serverParams.ball_decay)
         
         if ball_point.x() < base_point.x() + 0.1:
-            ball_point.x() = base_point.x() + 0.1
+            ball_point.set_x(base_point.x() + 0.1)
         
         ball_line = Line2D(ball_point, base_point)
         move_y = ball_line.get_y(base_move_x)
