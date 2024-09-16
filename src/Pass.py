@@ -16,7 +16,6 @@ class Pass:
         target = []
         ball_pos = Vector2D(wm.ball.position.x, wm.ball.position.y)
         self_pos = Vector2D(wm.myself.position.x, wm.myself.position.y)
-        print('len: ', len(wm.teammates))
         for i in wm.teammates :
             if i == None or i.uniform_number == wm.myself.uniform_number or i.uniform_number < 0:
                 continue
