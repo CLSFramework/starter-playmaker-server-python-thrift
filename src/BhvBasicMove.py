@@ -15,9 +15,8 @@ class BhvBasicMove:
         
         wm = agent.wm
         actions = [] # actions will be queued here
-        #actions.append(PlayerAction(body_tackle_to_point=Body_TackleToPoint(RpcVector2D(0, 0), 0.8, 20)))
         
-        actions += BhvBasicTackle(0.8, 80).Decision(agent)
+        actions += [tackle] if (tackle := BhvBasicTackle(0.8, 80).Decision(agent)) is not None else []
         
         self_min = wm.intercept_table.self_reach_steps
         mate_min = wm.intercept_table.first_teammate_reach_steps
