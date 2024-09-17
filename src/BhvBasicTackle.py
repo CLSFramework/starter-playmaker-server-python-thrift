@@ -71,9 +71,8 @@ class BhvBasicTackle:
         
         return
         
-    def executeV12(self, agent: IAgent):
+    def ExecuteV12(self, agent: IAgent, use_foul: bool):
 
-        actions = []
         s_last_execute_time =  agent.wm.cycle
         s_result = False
         s_best_angle = AngleDeg(0,0)
@@ -87,9 +86,8 @@ class BhvBasicTackle:
                 agent.add_log_message(LoggerLevel.TEAM,f"BasicTackle{s_best_angle.degree()}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
 
                 tackle_dir = (s_best_angle - wm.myself.body_direction).degree()
-                actions.append(PlayerAction(tackle=Tackle(tackle_dir)))
-                actions.append(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
-            return actions
+                return PlayerAction(tackle=Tackle(tackle_dir, use_foul))
+                #actions.append(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
 
         s_last_execute_time = wm.time()
         s_result = False
@@ -98,7 +96,10 @@ class BhvBasicTackle:
 
         opp_goal = Vector2D(SP.pitch_half_length, 0.0)
         our_goal = Vector2D(-SP.pitch_half_length, 0.0)
-        virtual_accel = (wm.kickable_opponent_id and Vector2D(our_goal - wm.ball.position).set_length(0.5) or Vector2D(0.0, 0.0))
+        kickable_opponent = True
+        if wm.intercept_table.first_opponent_reach_steps > 1:
+            kickable_opponent = False
+        virtual_accel = (kickable_opponent and Vector2D(our_goal - wm.ball.position).set_length(0.5) or Vector2D(0.0, 0.0))
         shoot_chance = (wm.ball.position.dist(opp_goal) < 20.0)
 
         ball_rel_angle = wm.ball.angleFromSelf() - wm.myself.body_direction
@@ -169,10 +170,9 @@ class BhvBasicTackle:
         agent.add_log_message(LoggerLevel.TEAM,f"BasicTackle{best_angle.degree()}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
 
         tackle_dir = (best_angle - wm.myself.body_direction).degree()
-        actions.append(PlayerAction(tackle=Tackle(tackle_dir)))
-        actions.append(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
+        return PlayerAction(tackle=Tackle(tackle_dir, use_foul))
+        #actions.append(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
 
-        return actions
         
         
         
