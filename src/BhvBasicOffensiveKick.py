@@ -1,27 +1,43 @@
 from src.IDecisionMaker import IDecisionMaker
 from src.IAgent import IAgent
-from soccer.ttypes import LoggerLevel
-from src.BhvBasicOffensiveKick import BhvBasicOffensiveKick
+from soccer.ttypes import Body_HoldBall, LoggerLevel, PlayerAction
+from src.Shoot import Shoot
+from src.Pass import Pass
+from src.Dribble import Dribble
+from src.ClearBall import ClearBall
+from src.Tools import Tools
 
-
-class WithBallDecisionMaker(IDecisionMaker):
+class BhvBasicOffensiveKick:
     def __init__(self):
         pass
     
     sum_time = 0
     count = 0
-    def make_decision(self, agent: IAgent):
+    def Decision(agent: IAgent):
  
         agent.add_log_message(LoggerLevel.TEAM ,
                                     f": DM_WithBall" ,
                                         agent.wm.myself.position.x ,
                                             agent.wm.myself.position.y - 2 ,
                                                 '\033[31m')
-        basic_offensive_kick_actions = list(reversed(BhvBasicOffensiveKick.Decision(agent)))
+        actions = []
+        actions += [shoot] if (shoot := Shoot.Decision(agent)) is not None else []
+        opps = Tools.OpponentsFromSelf(agent)
+        nearest_opp = opps[0] if opps else None
+        nearest_opp_dist = nearest_opp.dist_from_self if nearest_opp else 1000.0
         
-        for act in basic_offensive_kick_actions:
-            agent.add_action(act)
+        if nearest_opp_dist < 10:
+            actions += [passing] if (passing := Pass.Decision(agent)) is not None else []
+            
+        actions += [dribble] if (dribble := Dribble.Decision(agent)) is not None else []
         
+        if nearest_opp_dist > 2.5:
+            actions.append(PlayerAction(body_hold_ball=Body_HoldBall()))
+
+        actions.append(ClearBall.Decision(agent))
+        
+        #Sending actions' queue
+        return actions
         '''agent.add_action(PlayerAction(helios_chain_action=HeliosChainAction(lead_pass=True,
                                                                                   direct_pass=True,
                                                                                   through_pass=True,
