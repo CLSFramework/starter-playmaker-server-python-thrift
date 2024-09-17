@@ -259,7 +259,6 @@ class Tools:
             for j in range(i + 1, len(opp)):
                 if opp[i].dist_from_self > opp[j].dist_from_self:
                     Tools.swap(opp[i], opp[j])
-        
         return opp
     
     def OpponentsFromBall(agent: IAgent):
@@ -272,5 +271,4 @@ class Tools:
             for j in range(i + 1, len(opp)):
                 if opp[i].dist_from_ball > opp[j].dist_from_ball:
                     Tools.swap(opp[i], opp[j])
-        
         return opp

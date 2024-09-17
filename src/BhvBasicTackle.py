@@ -1,5 +1,5 @@
 from src.IAgent import IAgent
-from soccer.ttypes import PlayerAction, CardType, Tackle, LoggerLevel,Neck_TurnToBallOrScan
+from soccer.ttypes import PlayerAction, CardType, Tackle, LoggerLevel
 from src.Tools import Tools
 from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.angle_deg import AngleDeg
