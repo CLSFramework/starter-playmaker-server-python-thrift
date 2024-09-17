@@ -261,3 +261,16 @@ class Tools:
                     Tools.swap(opp[i], opp[j])
         
         return opp
+    
+    def OpponentsFromBall(agent: IAgent):
+
+        opp = agent.wm.opponents
+        for i in opp:
+            if i == None or i.uniform_number == agent.wm.myself.uniform_number or i.uniform_number < 0:
+                opp.remove(i)
+        for i in range(0, len(opp)):
+            for j in range(i + 1, len(opp)):
+                if opp[i].dist_from_ball > opp[j].dist_from_ball:
+                    Tools.swap(opp[i], opp[j])
+        
+        return opp

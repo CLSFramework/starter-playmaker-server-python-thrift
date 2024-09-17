@@ -1,5 +1,5 @@
 from src.IAgent import IAgent
-from soccer.ttypes import PlayerAction, RpcVector2D, Body_TackleToPoint, Body_Intercept, Body_GoToPoint, Body_TurnToPoint
+from soccer.ttypes import PlayerAction, RpcVector2D, Body_TackleToPoint, Body_Intercept, Body_GoToPoint, Body_TurnToPoint, LoggerLevel
 from src.Strategy import Strategy
 from src.BhvBasicTackle import BhvBasicTackle
 from pyrusgeom.soccer_math import inertia_n_step_point
@@ -27,7 +27,7 @@ class BhvGoalieBasicMove:
             actions.append(PlayerAction(body_intercept=Body_Intercept()))
             
         move_point = BhvGoalieBasicMove.GetTargetPoint(agent)
-        
+        agent.add_log_message(LoggerLevel.TEAM, f": Moving to {move_point}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(move_point.x(), move_point.y()), 1, 100)))
         
         actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(move_point.x(), move_point.y()))))
