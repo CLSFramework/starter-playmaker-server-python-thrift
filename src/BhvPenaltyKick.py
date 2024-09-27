@@ -2,7 +2,6 @@ from src.IAgent import IAgent
 import math
 from src.Dribble import Dribble
 from soccer.ttypes import *
-from soccer.ttypes import PlayerAction, LoggerLevel, Neck_TurnToPoint, Body_TurnToPoint
 from src.Tools import Tools
 from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.angle_deg import AngleDeg
@@ -17,40 +16,39 @@ class BhvPenaltyKick:
     def __init__(self):
         pass
 
-    def execute(self, agent: IAgent):
+    def decision(self, agent: IAgent):
         
         wm = agent.wm
         state = wm.PenaltyKickState
-        wm.myself.uniform_number
-        if wm.game_mode_type == "PenaltySetup":
+        if wm.game_mode_type == GameModeType.PenaltySetup_:
             if state.currentTakerSide() == wm.our_side:
                 if state.isKickTaker(wm.our_side, wm.myself.uniform_number):
                     return self.doKickerSetup(agent)
             else:
                 if wm.myself.is_goalie:
                     return self.doGoalieSetup(agent)
-        elif wm.game_mode_type == "PenaltyReady":
+        elif wm.game_mode_type == GameModeType.PenaltyReady_:
             if state.currentTakerSide() == wm.our_side:
                 if state.isKickTaker(wm.our_side, wm.myself.uniform_number):
                     return self.doKickerReady(agent)
             else:
                 if wm.myself.is_goalie:
                     return self.doGoalieSetup(agent)
-        elif wm.game_mode_type == "PenaltyTaken":
+        elif wm.game_mode_type == GameModeType.PenaltyTaken_:
             if state.currentTakerSide() == wm.our_side:
                 if state.isKickTaker(wm.our_side, wm.myself.uniform_number):
                     return self.doKicker(agent)
             else:
                 if wm.myself.is_goalie:
                     return self.doGoalie(agent)
-        elif wm.game_mode_type == "PenaltyScore" or wm.game_mode_type == "PenaltyMiss":
+        elif wm.game_mode_type == GameModeType.PenaltyScore_ or wm.game_mode_type == GameModeType.PenaltyMiss_:
             if state == wm.our_side:
                 if wm.myself.is_goalie:
                     return self.doGoalieSetup(agent)
-        elif wm.game_mode_type == "PenaltyOnfield" or wm.game_mode_type == "PenaltyFoul":
+        elif wm.game_mode_type == GameModeType.PenaltyOnfield_ or wm.game_mode_type == GameModeType.PenaltyFoul_:
             pass
         else:
-            print("Current playmode is NOT a Penalty Shootout???")
+            agent.add_log_text(LoggerLevel.TEAM,"Current playmode is NOT a Penalty Shootout???")
             return False
 
         if wm.myself.is_goalie:
@@ -62,7 +60,7 @@ class BhvPenaltyKick:
         dist_step = (9.0 + 9.0) / 12
         wait_pos = Vector2D(-2.0, -9.8 + dist_step * agent.wm.myself.uniform_number)
 
-        if agent.wm.myself.pos().dist(wait_pos) < 0.7:
+        if agent.wm.myself.position.dist(wait_pos) < 0.7:
             agent.add_action(PlayerAction(bhv_neck_body_to_ball =Bhv_NeckBodyToBall()))
         else:
             agent.add_action(PlayerAction(body_go_to_point=Body_GoToPoint(wait_pos, 0.3, agent.serverParams.max_dash_power)))
@@ -80,7 +78,7 @@ class BhvPenaltyKick:
         
         place_angle = 0.0
 
-        if not self.Bhv_GoToPlacedBall(place_angle):
+        if not self.Bhv_GoToPlacedBall(place_angle): # add Bhv_GoToPlacedBall TODO
             agent.add_action(PlayerAction(body_turn_to_point= Body_TurnToPoint(goal_c)))
             if opp_goalie :
                 agent.add_action(PlayerAction(neck_turn_to_point= Neck_TurnToPoint(opp_goalie.position)))
@@ -94,7 +92,7 @@ class BhvPenaltyKick:
         wm = agent.wm
         state = wm.penaltyKickState()
 
-        if wm.myself.stamina() < agent.serverParams.stamina_max - 10.0 and (wm.time().cycle() - state.time().cycle() > agent.serverParams.pen_ready_wait() - 3):
+        if wm.myself.stamina() < agent.serverParams.stamina_max - 10.0 and (wm.cycle - state.time().cycle() > agent.serverParams.pen_ready_wait() - 3):
             return self.doKickerSetup(agent)
 
         if not wm.myself.isKickable():
@@ -106,7 +104,7 @@ class BhvPenaltyKick:
         wm = agent.wm
 
         if not wm.myself.is_kickable:
-            if not True : #Body_Intercept():
+            if not True : #Body_Intercept(): TODO
                 agent.add_action(PlayerAction(Body_GoToPoint(wm.ball.position,0.4,agent.serverParams.max_dash_power)))
                 agent.add_log_text(LoggerLevel.TEAM, "go to ball")
                 return True
@@ -432,8 +430,8 @@ class BhvPenaltyKick:
         goal_l = Vector2D(-SP.pitch_half_length, -(SP.goal_width / 2.0))
         goal_r = Vector2D(-SP.pitch_half_length, (SP.goal_width / 2.0))
 
-        ball2post_angle_l = (goal_l - ball_pos).th()
-        ball2post_angle_r = (goal_r - ball_pos).th()
+        ball2post_angle_l = Vector2D(goal_l - ball_pos).th()
+        ball2post_angle_r = Vector2D(goal_r - ball_pos).th()
 
         # NOTE: post_angle_r < post_angle_l
         line_dir = AngleDeg.bisect(ball2post_angle_r, ball2post_angle_l)
@@ -540,9 +538,9 @@ class BhvPenaltyKick:
         if not opp_goalie:
             shot_c = Vector2D(SP.pitch_half_length,0.0)
             if point is not None:
-                point[0] = shot_c
+                point[0] = shot_c #TODO
             if first_speed is not None:
-                first_speed[0] = SP.ball_speed_max
+                first_speed[0] = SP.ball_speed_max #TODO
 
             # no goalie
             return True
