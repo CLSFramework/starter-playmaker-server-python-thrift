@@ -79,7 +79,7 @@ class BhvBasicTackle:
 
         wm = agent.wm
 
-        if s_last_execute_time == wm.time():
+        if s_last_execute_time == wm.cycle:
             agent.add_log_text(LoggerLevel.TEAM, f": called several times")
             if s_result:
                 agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: executeV12() tackle angle={s_best_angle.degree()}")
@@ -89,7 +89,7 @@ class BhvBasicTackle:
                 return PlayerAction(tackle=Tackle(tackle_dir, use_foul))
                 #actions.append(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
 
-        s_last_execute_time = wm.time()
+        s_last_execute_time = wm.cycle
         s_result = False
 
         SP = agent.serverParams
@@ -102,7 +102,7 @@ class BhvBasicTackle:
         virtual_accel = (kickable_opponent and Vector2D(our_goal - wm.ball.position).set_length(0.5) or Vector2D(0.0, 0.0))
         shoot_chance = (wm.ball.position.dist(opp_goal) < 20.0)
 
-        ball_rel_angle = wm.ball.angleFromSelf() - wm.myself.body_direction
+        ball_rel_angle = wm.ball.angle_from_self - wm.myself.body_direction
         tackle_rate = SP.tackle_power_rate * (1.0 - 0.5 * abs(ball_rel_angle) / 180.0)
 
         best_angle = AngleDeg(0.0)
