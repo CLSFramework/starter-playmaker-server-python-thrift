@@ -53,7 +53,7 @@ class BhvBasicTackle:
         else:
             return
 
-        return BhvBasicTackle.ExecuteOldVersion(self, agent, use_foul)
+        return BhvBasicTackle.ExecuteV12(self, agent, use_foul)
 
     
     def ExecuteOldVersion(self, agent: IAgent, use_foul: bool):
@@ -75,7 +75,7 @@ class BhvBasicTackle:
 
         s_last_execute_time =  agent.wm.cycle
         s_result = False
-        s_best_angle = AngleDeg(0,0)
+        s_best_angle = AngleDeg(0)
 
         wm = agent.wm
 
@@ -99,8 +99,9 @@ class BhvBasicTackle:
         kickable_opponent = True
         if wm.intercept_table.first_opponent_reach_steps > 1:
             kickable_opponent = False
-        virtual_accel = (kickable_opponent and Vector2D(our_goal - wm.ball.position).set_length(0.5) or Vector2D(0.0, 0.0))
-        shoot_chance = (wm.ball.position.dist(opp_goal) < 20.0)
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        virtual_accel = (kickable_opponent and Vector2D(our_goal - ball_position).set_length(0.5) or Vector2D(0.0, 0.0))
+        shoot_chance = (ball_position.dist(opp_goal) < 20.0)
 
         ball_rel_angle = wm.ball.angle_from_self - wm.myself.body_direction
         tackle_rate = SP.tackle_power_rate * (1.0 - 0.5 * abs(ball_rel_angle) / 180.0)
