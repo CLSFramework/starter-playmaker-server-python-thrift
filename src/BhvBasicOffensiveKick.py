@@ -2,7 +2,6 @@ from src.IDecisionMaker import IDecisionMaker
 from src.IAgent import IAgent
 from soccer.ttypes import Body_HoldBall, LoggerLevel, PlayerAction
 from src.Shoot import Shoot
-from pyrusgeom.vector_2d import Vector2D
 from src.Pass import Pass
 from src.Dribble import Dribble
 from src.ClearBall import ClearBall
@@ -24,8 +23,8 @@ class BhvBasicOffensiveKick:
         actions = []
         actions += [shoot] if (shoot := Shoot.Decision(agent)) is not None else []
         opps = Tools.OpponentsFromSelf(agent)
-        nearest_opp = Vector2D( opps[0] if opps else None)
-        nearest_opp_dist = nearest_opp.dist(agent.wm.myself.position) if nearest_opp else 1000.0 
+        nearest_opp = opps[0] if opps else None
+        nearest_opp_dist = nearest_opp.dist_from_self if nearest_opp else 1000.0
         
         if nearest_opp_dist < 10:
             actions += [passing] if (passing := Pass.Decision(agent)) is not None else []
