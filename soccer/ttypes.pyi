@@ -125,7 +125,7 @@ class Player(object):
     type_id: int
 
 class Self(object):
-    def __init__(self, position: RpcVector2D = None, seen_position: RpcVector2D = None, heard_position: RpcVector2D = None, velocity: RpcVector2D = None, seen_velocity: RpcVector2D = None, pos_count: int = None, seen_pos_count: int = None, heard_pos_count: int = None, vel_count: int = None, seen_vel_count: int = None, ghost_count: int = None, id: int = None, side: Side = None, uniform_number: int = None, uniform_number_count: int = None, is_goalie: bool = None, body_direction: float = None, body_direction_count: int = None, face_direction: float = None, face_direction_count: int = None, point_to_direction: float = None, point_to_direction_count: int = None, is_kicking: bool = None, dist_from_ball: float = None, angle_from_ball: float = None, ball_reach_steps: int = None, is_tackling: bool = None, relative_neck_direction: float = None, stamina: float = None, is_kickable: bool = None, catch_probability: float = None, tackle_probability: float = None, foul_probability: float = None, view_width: ViewWidth = None, type_id: int = None, kick_rate: float = None, recovery: float = None, stamina_capacity: float = None, card: CardType = None):
+    def __init__(self, position: RpcVector2D = None, seen_position: RpcVector2D = None, heard_position: RpcVector2D = None, velocity: RpcVector2D = None, seen_velocity: RpcVector2D = None, pos_count: int = None, seen_pos_count: int = None, heard_pos_count: int = None, vel_count: int = None, seen_vel_count: int = None, ghost_count: int = None, id: int = None, side: Side = None, uniform_number: int = None, uniform_number_count: int = None, is_goalie: bool = None, body_direction: float = None, body_direction_count: int = None, face_direction: float = None, face_direction_count: int = None, point_to_direction: float = None, point_to_direction_count: int = None, is_kicking: bool = None, dist_from_ball: float = None, angle_from_ball: float = None, ball_reach_steps: int = None, is_tackling: bool = None, relative_neck_direction: float = None, stamina: float = None, is_kickable: bool = None, catch_probability: float = None, tackle_probability: float = None, foul_probability: float = None, view_width: ViewWidth = None, type_id: int = None, kick_rate: float = None, recovery: float = None, stamina_capacity: float = None, card: CardType = None, catch_time: int = None):
         pass
     position: RpcVector2D
     seen_position: RpcVector2D
@@ -166,6 +166,7 @@ class Self(object):
     recovery: float
     stamina_capacity: float
     card: CardType
+    catch_time: int
 
 class InterceptActionType(Enum):
     UNKNOWN_Intercept_Action_Type = auto()

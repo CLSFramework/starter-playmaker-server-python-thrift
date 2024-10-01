@@ -23,7 +23,7 @@ class GoalieDecisionMaker(IDecisionMaker):
                 agent.add_action(i)
             
         our_penalty = Rect2D(Vector2D(-agent.serverParams.pitch_half_length, -agent.serverParams.penalty_area_half_width + 1), Size2D(agent.serverParams.penalty_area_length - 1, agent.serverParams.penalty_area_half_width * 2 - 2))
-        if agent.wm.ball.dist_from_self < agent.serverParams.catch_area_l - 0.05 and our_penalty.contains(Vector2D(agent.wm.myself.position.x, agent.wm.myself.position.y)):
+        if agent.wm.cycle > agent.wm.myself.catch_time + agent.serverParams.catch_ban_cycle and agent.wm.ball.dist_from_self < agent.serverParams.catch_area_l - 0.05 and our_penalty.contains(Vector2D(agent.wm.myself.position.x, agent.wm.myself.position.y)):
             agent.add_action(PlayerAction(catch_action=Catch()))
             return
         if agent.wm.myself.is_kickable:
