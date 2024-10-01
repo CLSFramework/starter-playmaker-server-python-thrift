@@ -237,7 +237,7 @@ class GameModeType(Enum):
     MODE_MAX = auto()
 
 class WorldModel(object):
-    def __init__(self, intercept_table: InterceptTable = None, our_team_name: str = None, their_team_name: str = None, our_side: Side = None, last_set_play_start_time: int = None, myself: Self = None, ball: Ball = None, teammates: List[Player] = None, opponents: List[Player] = None, unknowns: List[Player] = None, our_players_dict: Dict[int, Player] = None, their_players_dict: Dict[int, Player] = None, our_goalie_uniform_number: int = None, their_goalie_uniform_number: int = None, offside_line_x: float = None, offside_line_x_count: int = None, kickable_teammate_id: int = None, kickable_opponent_id: int = None, last_kick_side: Side = None, last_kicker_uniform_number: int = None, cycle: int = None, game_mode_type: GameModeType = None, left_team_score: int = None, right_team_score: int = None, is_our_set_play: bool = None, is_their_set_play: bool = None, stoped_cycle: int = None, our_team_score: int = None, their_team_score: int = None, is_penalty_kick_mode: bool = None, helios_home_positions: Dict[int, RpcVector2D] = None, our_defense_line_x: float = None, their_defense_line_x: float = None, our_defense_player_line_x: float = None, their_defense_player_line_x: float = None):
+    def __init__(self, intercept_table: InterceptTable = None, our_team_name: str = None, their_team_name: str = None, our_side: Side = None, last_set_play_start_time: int = None, myself: Self = None, ball: Ball = None, teammates: List[Player] = None, opponents: List[Player] = None, unknowns: List[Player] = None, our_players_dict: Dict[int, Player] = None, their_players_dict: Dict[int, Player] = None, our_goalie_uniform_number: int = None, their_goalie_uniform_number: int = None, offside_line_x: float = None, offside_line_x_count: int = None, kickable_teammate_id: int = None, kickable_opponent_id: int = None, last_kick_side: Side = None, last_kicker_uniform_number: int = None, cycle: int = None, game_mode_type: GameModeType = None, left_team_score: int = None, right_team_score: int = None, is_our_set_play: bool = None, is_their_set_play: bool = None, stoped_cycle: int = None, our_team_score: int = None, their_team_score: int = None, is_penalty_kick_mode: bool = None, helios_home_positions: Dict[int, RpcVector2D] = None, our_defense_line_x: float = None, their_defense_line_x: float = None, our_defense_player_line_x: float = None, their_defense_player_line_x: float = None, kickable_teammate_existance: bool = None, kickable_opponent_existance: bool = None):
         pass
     intercept_table: InterceptTable
     our_team_name: str
@@ -274,6 +274,8 @@ class WorldModel(object):
     their_defense_line_x: float
     our_defense_player_line_x: float
     their_defense_player_line_x: float
+    kickable_teammate_existance: bool
+    kickable_opponent_existance: bool
 
 class State(object):
     def __init__(self, register_response: RegisterResponse = None, world_model: WorldModel = None, full_world_model: WorldModel = None):

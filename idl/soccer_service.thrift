@@ -269,7 +269,9 @@ struct WorldModel {
   32: double our_defense_line_x,
   33: double their_defense_line_x,
   34: double our_defense_player_line_x,
-  35: double their_defense_player_line_x
+  35: double their_defense_player_line_x,
+  36: bool kickable_teammate_existance,
+  37: bool kickable_opponent_existance
 }
 
 struct State {

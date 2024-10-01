@@ -70,52 +70,51 @@ class BhvBasicTackle:
             return PlayerAction(tackle=Tackle(tackle_power))
         
         return
-        
+    
+    s_last_execute_time = 0
+    s_result = False
+    s_best_angle = 0.0
+    
+    @staticmethod
     def ExecuteV12(self, agent: IAgent, use_foul: bool):
-
-        s_last_execute_time =  agent.wm.cycle
-        s_result = False
-        s_best_angle = AngleDeg(0)
 
         wm = agent.wm
 
-        if s_last_execute_time == wm.cycle:
+        if BhvBasicTackle.s_last_execute_time == wm.cycle:
             agent.add_log_text(LoggerLevel.TEAM, f": called several times")
-            if s_result:
-                agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: executeV12() tackle angle={s_best_angle.degree()}")
-                agent.add_log_message(LoggerLevel.TEAM,f"BasicTackle{s_best_angle.degree()}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
+            if BhvBasicTackle.s_result:
+                agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: executeV12() tackle angle={BhvBasicTackle.s_best_angle.degree()}")
+                agent.add_log_message(LoggerLevel.TEAM,f"BasicTackle{BhvBasicTackle.s_best_angle.degree()}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
 
-                tackle_dir = (s_best_angle - wm.myself.body_direction).degree()
+                tackle_dir = (BhvBasicTackle.s_best_angle - wm.myself.body_direction).degree()
                 return PlayerAction(tackle=Tackle(tackle_dir, use_foul))
                 #actions.append(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
 
-        s_last_execute_time = wm.cycle
-        s_result = False
+        BhvBasicTackle.s_last_execute_time = wm.cycle
+        BhvBasicTackle.s_result = False
 
         SP = agent.serverParams
 
         opp_goal = Vector2D(SP.pitch_half_length, 0.0)
         our_goal = Vector2D(-SP.pitch_half_length, 0.0)
-        kickable_opponent = True
-        if wm.intercept_table.first_opponent_reach_steps > 1:
-            kickable_opponent = False
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
-        virtual_accel = (kickable_opponent and Vector2D(our_goal - ball_position).set_length(0.5) or Vector2D(0.0, 0.0))
+        virtual_accel = (our_goal - ball_position).set_length_vector(0.5) if wm.kickable_opponent_existance else Vector2D(0.0, 0.0)
+
         shoot_chance = (ball_position.dist(opp_goal) < 20.0)
 
         ball_rel_angle = wm.ball.angle_from_self - wm.myself.body_direction
         tackle_rate = SP.tackle_power_rate * (1.0 - 0.5 * abs(ball_rel_angle) / 180.0)
 
-        best_angle = AngleDeg(0.0)
+        best_angle = AngleDeg(0)
         max_speed = -1.0
 
-        for a in range(-180.0, 180.0, 10.0):
+        for a in range(-180, 180, 10):
             rel_angle = AngleDeg(a - wm.myself.body_direction)
 
-            eff_power = SP.max_tackle_power + ((SP.max_tackle_power - SP.max_back_tackle_power) * (1.0 - rel_angle.abs() / 180.0))
+            eff_power = SP.max_back_tackle_power + ((SP.max_tackle_power - SP.max_back_tackle_power) * (1.0 - rel_angle.abs() / 180.0))
             eff_power *= tackle_rate
-
-            vel = Vector2D(wm.ball.velocity + Vector2D.polar2vector(eff_power, AngleDeg(a)))
+            ball_velocity = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y)
+            vel = Vector2D(ball_velocity + Vector2D.polar2vector(eff_power, AngleDeg(a)))
             vel += virtual_accel
 
             speed = vel.r()
@@ -123,10 +122,10 @@ class BhvBasicTackle:
                 vel *= (SP.ball_speed_max / speed)
                 speed = SP.ball_speed_max
 
-            if abs(vel.th()) > 90.0:
+            if vel.th().abs() > 90.0:
                 continue
 
-            ball_next = wm.ball.position + vel
+            ball_next = ball_position + vel
 
             maybe_opponent_get_ball = False
 
@@ -140,7 +139,7 @@ class BhvBasicTackle:
                 if o.dist_from_ball > 6.0:
                     break
 
-                opp_pos = Vector2D(o.position + o.velocity)
+                opp_pos = Vector2D(Vector2D(o.position.x, o.position.y) + Vector2D(o.velocity.x, o.velocity.y))
                 if opp_pos.dist(ball_next) < SP.kickable_area + 0.1:
                     maybe_opponent_get_ball = True
                     break
@@ -149,7 +148,7 @@ class BhvBasicTackle:
                 continue
 
             if shoot_chance:
-                ball_ray = Ray2D(wm.ball.position, vel.th())
+                ball_ray = Ray2D(ball_position, vel.th())
                 goal_line = Line2D(Vector2D(SP.pitch_half_length, 10.0), Vector2D(SP.pitch_half_length, -10.0))
                 intersect = Vector2D(ball_ray.intersection(goal_line))
                 if intersect._is_valid and intersect.abs_y() < (SP.goal_width/2.0) - 3.0:
@@ -160,12 +159,12 @@ class BhvBasicTackle:
                 best_angle = AngleDeg(a)
 
         if max_speed < 0.0:
-            s_result = False
+            BhvBasicTackle.s_result = False
             agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: failed executeV12. max_speed={max_speed}")
-            return False
+            return
 
-        s_result = True
-        s_best_angle = best_angle
+        BhvBasicTackle.s_result = True
+        BhvBasicTackle.s_best_angle = best_angle
 
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: executeV12() angle={best_angle.degree()}")
         agent.add_log_message(LoggerLevel.TEAM,f"BasicTackle{best_angle.degree()}", agent.wm.myself.position.x, agent.wm.myself.position.y - 2, '\033[31m')
