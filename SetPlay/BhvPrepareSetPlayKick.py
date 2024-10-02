@@ -1,6 +1,5 @@
 from src.IAgent import IAgent
 from soccer.ttypes import *
-from src.Tools import Tools
 from pyrusgeom.angle_deg import AngleDeg
 
 class BhvPrepareSetPlayKick:

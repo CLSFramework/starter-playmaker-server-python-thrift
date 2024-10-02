@@ -1,25 +1,16 @@
 import math
 from src.IAgent import IAgent
-import math
-from src.Dribble import Dribble
 from soccer.ttypes import *
-from src.Tools import Tools
 from pyrusgeom.vector_2d import Vector2D
-from pyrusgeom.angle_deg import AngleDeg
-from pyrusgeom.soccer_math import inertia_n_step_point
-from pyrusgeom.ray_2d import Ray2D
 from pyrusgeom.segment_2d import Segment2D
 from pyrusgeom.circle_2d import Circle2D
-from pyrusgeom.size_2d import Size2D
-from pyrusgeom.rect_2d import Rect2D
-from pyrusgeom.line_2d import Line2D
 
 class Bhv_SetPlayIndirectFreeKick:
     def __init__(self):
         pass
 
     def execute(self, agent):
-        wm = agent.world
+        wm = agent.wm
         our_kick = (wm.game_mode.type == 'BackPass' and wm.game_mode.side == wm.their_side) or \
                    (wm.game_mode.type == 'IndFreeKick' and wm.game_mode.side == wm.our_side) or \
                    (wm.game_mode.type == 'FoulCharge' and wm.game_mode.side == wm.their_side) or \
@@ -50,7 +41,7 @@ class Bhv_SetPlayIndirectFreeKick:
         if self.do_kick_to_shooter(agent):
             return
 
-        wm = agent.world
+        wm = agent.wm
         max_kick_speed = wm.self.kick_rate * ServerParam.i.max_power
 
         # pass
@@ -127,7 +118,7 @@ class Bhv_SetPlayIndirectFreeKick:
         agent.add_say_message(BallMessage(agent.effector().queued_next_ball_pos(), agent.effector().queued_next_ball_vel()))
 
     def do_kick_wait(self, agent):
-        wm = agent.world
+        wm = agent.wm
 
         face_point = Vector2D(50.0, 0.0)
         face_angle = (face_point - wm.self().pos()).th()
@@ -157,7 +148,7 @@ class Bhv_SetPlayIndirectFreeKick:
         return False
 
     def do_kick_to_shooter(self, agent):
-        wm = agent.world
+        wm = agent.wm
 
         goal = Vector2D(ServerParam.i.pitch_half_length(), wm.self().pos().y * 0.8)
 
@@ -241,7 +232,7 @@ class Bhv_SetPlayIndirectFreeKick:
         return Bhv_SetPlay.get_avoid_circle_point(wm, point)
 
     def do_offense_move(self, agent):
-        wm = agent.world
+        wm = agent.wm
 
         target_point = Strategy.i.get_home_position(wm, wm.self().unum())
         target_point.x = min(wm.offside_line_x() - 1.0, target_point.x)
@@ -277,9 +268,9 @@ class Bhv_SetPlayIndirectFreeKick:
 
         agent.set_neck_action(Neck_TurnToBallOrScan(0))
 
-    def do_defense_move(self, agent):
+    def do_defense_move(self, agent: IAgent):
         SP = ServerParam.i
-        wm = agent.world
+        wm = agent.wm
 
         target_point = Strategy.i.get_home_position(wm, wm.self().unum())
         adjusted_point = self.get_avoid_circle_point(wm, target_point)

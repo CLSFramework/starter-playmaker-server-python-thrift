@@ -1,8 +1,5 @@
-import logging
 from src.IAgent import IAgent
-import math
 from soccer.ttypes import *
-from src.Tools import Tools
 
 class IntentionWaitAfterSetPlayKick:
 

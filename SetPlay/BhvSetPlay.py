@@ -1,18 +1,9 @@
-import logging
 from src.IAgent import IAgent
 import math
-from src.Dribble import Dribble
 from soccer.ttypes import *
-from src.Tools import Tools
 from pyrusgeom.vector_2d import Vector2D
-from pyrusgeom.angle_deg import AngleDeg
-from pyrusgeom.soccer_math import inertia_n_step_point
-from pyrusgeom.ray_2d import Ray2D
 from pyrusgeom.segment_2d import Segment2D
 from pyrusgeom.circle_2d import Circle2D
-from pyrusgeom.size_2d import Size2D
-from pyrusgeom.rect_2d import Rect2D
-from pyrusgeom.line_2d import Line2D
 
 class Bhv_SetPlay:
     def __init__(self):
