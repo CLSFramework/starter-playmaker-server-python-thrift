@@ -53,11 +53,11 @@ class Bhv_SetPlay:
             return Bhv_SetPlayIndirectFreeKick().execute(agent)
 
         if wm.gameMode().type() in [GameMode.FoulCharge_, GameMode.FoulPush_]:
-            if (wm.ball().pos().x < ServerParam.i().ourPenaltyAreaLineX() + 1.0 and
-                    abs(wm.ball().pos().y) < ServerParam.i().penaltyAreaHalfWidth() + 1.0):
+            if (wm.ball.position.x < ServerParam.i().ourPenaltyAreaLineX() + 1.0 and
+                    abs(wm.ball.position.y) < ServerParam.i().penaltyAreaHalfWidth() + 1.0):
                 return Bhv_SetPlayIndirectFreeKick().execute(agent)
-            elif (wm.ball().pos().x > ServerParam.i().theirPenaltyAreaLineX() - 1.0 and
-                  abs(wm.ball().pos().y) < ServerParam.i().penaltyAreaHalfWidth() + 1.0):
+            elif (wm.ball.position.x > ServerParam.i().theirPenaltyAreaLineX() - 1.0 and
+                  abs(wm.ball.position.y) < ServerParam.i().penaltyAreaHalfWidth() + 1.0):
                 return Bhv_SetPlayIndirectFreeKick().execute(agent)
 
         if wm.gameMode().isOurSetPlay(wm.ourSide()):
@@ -74,8 +74,8 @@ class Bhv_SetPlay:
         if not wm.gameMode().isOurSetPlay(wm.ourSide()):
             target_point = Strategy.i().getHomePosition(wm, wm.self().unum())
             if target_point.x > wm.self().pos().x:
-                if (wm.ball().pos().x < -30.0 and
-                        target_point.x < wm.ball().pos().x):
+                if (wm.ball.position.x < -30.0 and
+                        target_point.x < wm.ball.position.x):
                     return wm.self().getSafetyDashPower(ServerParam.i().maxDashPower())
                 rate = 0.0
                 if wm.self().stamina() > ServerParam.i().staminaMax() * 0.8:
@@ -109,14 +109,14 @@ class Bhv_SetPlay:
     def get_avoid_circle_point(self, wm, target_point):
         SP = ServerParam.i()
         avoid_radius = SP.centerCircleR() + wm.self().playerType().playerSize()
-        ball_circle = Circle2D(wm.ball().pos(), avoid_radius)
+        ball_circle = Circle2D(wm.ball.position, avoid_radius)
         agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (get_avoid_circle_point) first_target=(%.2f %.2f)" % (target_point.x, target_point.y))
-        dlog.addCircle(LoggerLevel.TEAM, wm.ball().pos(), avoid_radius, "#ffffff")
+        dlog.addCircle(LoggerLevel.TEAM, wm.ball.position, avoid_radius, "#ffffff")
         if self.can_go_to(-1, wm, ball_circle, target_point):
             agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (get_avoid_circle_point) ok, first point")
             return target_point
         target_angle = (target_point - wm.self().pos()).th()
-        ball_target_angle = (target_point - wm.ball().pos()).th()
+        ball_target_angle = (target_point - wm.ball.position).th()
         ball_is_left = wm.ball().angleFromSelf().isLeftOf(target_angle)
         ANGLE_DIVS = 6
         subtargets = []
@@ -125,7 +125,7 @@ class Bhv_SetPlay:
         a = angle_step
         for i in range(1, ANGLE_DIVS):
             angle = ball_target_angle + (180.0 / ANGLE_DIVS) * a
-            new_target = wm.ball().pos() + Vector2D.from_polar(avoid_radius + 1.0, angle)
+            new_target = wm.ball.position + Vector2D.from_polar(avoid_radius + 1.0, angle)
             agent.add_log_text(LoggerLevel.TEAM, "%d: a=%d angle=%.1f (%.2f %.2f)" % (count, a, angle.degree(), new_target.x, new_target.y))
             if abs(new_target.x) > SP.pitchHalfLength() + SP.pitchMargin() - 1.0 or abs(new_target.y) > SP.pitchHalfWidth() + SP.pitchMargin() - 1.0:
                 agent.add_log_text(LoggerLevel.TEAM, "%d: out of field" % count)
@@ -137,7 +137,7 @@ class Bhv_SetPlay:
         a = -angle_step
         for i in range(1, ANGLE_DIVS * 2):
             angle = ball_target_angle + (180.0 / ANGLE_DIVS) * a
-            new_target = wm.ball().pos() + Vector2D.from_polar(avoid_radius + 1.0, angle)
+            new_target = wm.ball.position + Vector2D.from_polar(avoid_radius + 1.0, angle)
             agent.add_log_text(LoggerLevel.TEAM, "%d: a=%d angle=%.1f (%.2f %.2f)" % (count, a, angle.degree(), new_target.x, new_target.y))
             if abs(new_target.x) > SP.pitchHalfLength() + SP.pitchMargin() - 1.0 or abs(new_target.y) > SP.pitchHalfWidth() + SP.pitchMargin() - 1.0:
                 agent.add_log_text(LoggerLevel.TEAM, "%d: out of field" % count)
@@ -163,7 +163,7 @@ class Bhv_SetPlay:
             home_pos = Strategy.i().getHomePosition(wm, unum)
             if not home_pos.isValid():
                 continue
-            d2 = home_pos.dist2(wm.ball().pos())
+            d2 = home_pos.dist2(wm.ball.position)
             if d2 < second_min_dist2:
                 second_kicker_unum = unum
                 second_min_dist2 = d2
@@ -225,13 +225,13 @@ class Bhv_SetPlay:
         target_point = Strategy.i().getHomePosition(wm, wm.self().unum())
         agent.add_log_text(LoggerLevel.TEAM, __file__ + ": their set play. HomePosition=(%.2f, %.2f)" % (target_point.x, target_point.y))
         dash_power = self.get_set_play_dash_power(agent)
-        ball_to_target = target_point - wm.ball().pos()
+        ball_to_target = target_point - wm.ball.position
         if ball_to_target.r() < 11.0:
             xdiff = math.sqrt(math.pow(11.0, 2) - math.pow(ball_to_target.y, 2))
-            target_point.x = wm.ball().pos().x - xdiff
+            target_point.x = wm.ball.position.x - xdiff
             agent.add_log_text(LoggerLevel.TEAM, __file__ + ": avoid circle(1). adjust x. x_diff=%.1f newPos=(%.2f %.2f)" % (xdiff, target_point.x, target_point.y))
             if target_point.x < -45.0:
-                target_point = wm.ball().pos()
+                target_point = wm.ball.position
                 target_point += ball_to_target.setLengthVector(11.0)
                 agent.add_log_text(LoggerLevel.TEAM, __file__ + ": avoid circle(2). adjust len. new_pos=(%.2f %.2f)" % (target_point.x, target_point.y))
         if wm.gameMode().type() == GameMode.KickOff_ and ServerParam.i().kickoffOffside():
@@ -242,7 +242,7 @@ class Bhv_SetPlay:
         dist_thr = wm.ball().distFromSelf() * 0.1
         if dist_thr < 0.7:
             dist_thr = 0.7
-        if adjusted_point != target_point and wm.ball().pos().dist(target_point) > 10.0 and wm.self().inertiaFinalPoint().dist(adjusted_point) < dist_thr:
+        if adjusted_point != target_point and wm.ball.position.dist(target_point) > 10.0 and wm.self().inertiaFinalPoint().dist(adjusted_point) < dist_thr:
             agent.add_log_text(LoggerLevel.TEAM, __file__ + ": reverted to the first target point")
             adjusted_point = target_point
         agent.debugClient().setTarget(target_point)
