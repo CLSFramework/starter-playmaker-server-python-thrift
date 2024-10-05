@@ -6,24 +6,16 @@ class IntentionWaitAfterSetPlayKick:
     def __init__(self):
         pass
 
-    def finished(self, agent: IAgent) -> bool:
+    def finished(agent: IAgent) -> bool:
         wm = agent.wm
 
-        if wm.kickable_opponent():
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: finished. exist kickable opponent")
+        if wm.kickable_opponent_existance:
             return True
 
-        if not wm.self().is_kickable():
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: finished. no kickable")
+        if not wm.myself.is_kickable:
             return True
 
         return False
 
     def execute(self, agent: IAgent) -> bool:
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (execute) wait after set play kick")
-
-        agent.debug_client().add_message("Intention:Wait")
-
-        BhvNeckBodyToBall().execute(agent)
-
-        return True
+        return [PlayerAction(bhv_body_neck_to_ball=Bhv_BodyNeckToBall())]
