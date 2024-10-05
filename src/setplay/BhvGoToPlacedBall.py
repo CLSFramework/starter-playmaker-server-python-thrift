@@ -31,24 +31,19 @@ class Bhv_GoToPlacedBall:
         dash_speed = -1.0
         if wm.ball.dist_from_self > 2.0:
             dash_power = BhvSetPlay.get_set_play_dash_power(agent)
-        else: #TODO
+        else:
             dash_speed = agent.playerTypes[wm.myself.id].player_size
-            dash_power = Tools.GetDashPowerToKeepSpeed(agent, dash_speed, wm.myself.effo) #TODO
+            dash_power = Tools.GetDashPowerToKeepSpeed(agent, dash_speed, wm.myself.effort)
         # it is necessary to go to sub target point
         if abs(angle_diff) > dir_margin:
-            Logger.team(f"{__file__}: go to sub-target({sub_target.x:.1f}, {sub_target.y:.1f})")
-            Body_GoToPoint(sub_target, 0.1, dash_power, dash_speed).execute(agent)
+            actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(sub_target, 0.1, dash_power, dash_speed)))
         # dir diff is small. go to ball
         else:
             # body dir is not right
-            if abs(wm.ball.angle_from_self - wm.self.body) > 1.5:
-                Logger.team(f"{__file__}: turn to ball")
-                Body_TurnToBall().execute(agent)
+            if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 1.5:
+                actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall().execute(agent)))
             # dash to ball
             else:
-                Logger.team(f"{__file__}: dash to ball")
-                agent.do_dash(dash_power)
-
-        agent.set_neck_action(Neck_ScanField())
-
-        return True
+                actions.append(PlayerAction(dash=Dash(dash_power)))
+                
+        return actions
