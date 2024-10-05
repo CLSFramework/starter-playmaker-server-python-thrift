@@ -272,3 +272,6 @@ class Tools:
                 if opp[i].dist_from_ball > opp[j].dist_from_ball:
                     Tools.swap(opp[i], opp[j])
         return opp
+    
+    def GetDashPowerToKeepSpeed(agent: IAgent, speed: float, effort: float):
+        return speed * ((1.0 - agent.playerTypes[agent.wm.myself.id].player_decay) / (agent.playerTypes[agent.wm.myself.id].dash_power_rate * effort))
