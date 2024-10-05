@@ -2,43 +2,48 @@ import math
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-
-class Bhv_SetPlayFreeKick:
-    def execute(self, agent: IAgent):
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: Bhv_SetPlayFreeKick")
-        if Bhv_SetPlay.is_kicker(agent):
-            self.doKick(agent)
+from src.setplay.BhvSetPlay import BhvSetPlay
+from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+from src.Pass import Pass
+from src.Tools import Tools
+class BhvSetPlayFreeKick:
+    def __init__(self):
+        pass
+    
+    def Decision(self, agent: IAgent):
+        
+        if BhvSetPlay.is_kicker(agent):
+            return self.doKick(agent)
         else:
-            self.doMove(agent)
-        return True
+            return self.doMove(agent)
 
     def doKick(self, agent:IAgent):
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKick)")
-        
+        actions = []
         # go to the ball position
-        if Bhv_GoToPlacedBall(0.0).execute(agent):
-            return
+        actions += BhvGoToPlacedBall(0.0).Decision(agent)
 
-        # wait
-        if self.doKickWait(agent):
-            return
+
+        actions += self.doKickWait(agent)
 
         # kick
         wm = agent.wm
-        max_ball_speed = wm.myself.kickRate() * ServerParam.i().maxPower()
+        max_ball_speed = wm.myself.kick_rate * agent.serverParams.max_power
 
         # pass
-        #Bhv_BasicOffensiveKick().pass(agent, 1) TODO
+        actions += Pass.Decision(agent)
 
         # kick to the nearest teammate
-        nearest_teammate = wm.getTeammateNearestToSelf(10, False)  # without goalie
-        if nearest_teammate and nearest_teammate.distFromSelf() < 20.0 and (
-            nearest_teammate.pos().x > -30.0 or nearest_teammate.distFromSelf() < 10.0):
-            
-            target_point = nearest_teammate.inertiaFinalPoint()
-            target_point.x += 0.5
 
-            ball_move_dist = wm.ball().pos().dist(target_point)
+        nearest_teammate: Player = Tools.GetTeammateNearestToSelf(False)
+        if nearest_teammate and nearest_teammate.dist_from_self < 20.0 and (
+            nearest_teammate.position.x > -30.0 or nearest_teammate.dist_from_self < 10.0):
+            nearest_teammate_pos = Vector2D(nearest_teammate.position.x, nearest_teammate.position.y)
+            nearest_teammate_vel = Vector2D(nearest_teammate.velocity.x, nearest_teammate.velocity.y)
+            target_point = Tools.inertia_final_point(nearest_teammate, nearest_teammate_pos, nearest_teammate_vel)
+            target_point.x += 0.5
+            ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+            ball_move_dist = ball_position.dist(target_point)
             ball_reach_step = math.ceil(calc_length_geom_series(max_ball_speed, ball_move_dist, ServerParam.i().ballDecay()))
             ball_speed = 0.0
             

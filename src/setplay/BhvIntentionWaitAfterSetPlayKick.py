@@ -17,5 +17,5 @@ class IntentionWaitAfterSetPlayKick:
 
         return False
 
-    def execute(self, agent: IAgent) -> bool:
+    def Decision(self, agent: IAgent) -> bool:
         return [PlayerAction(bhv_body_neck_to_ball=Bhv_BodyNeckToBall())]

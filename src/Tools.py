@@ -275,3 +275,23 @@ class Tools:
     
     def GetDashPowerToKeepSpeed(agent: IAgent, speed: float, effort: float):
         return speed * ((1.0 - agent.playerTypes[agent.wm.myself.id].player_decay) / (agent.playerTypes[agent.wm.myself.id].dash_power_rate * effort))
+    
+    def GetTeammateNearestToSelf(agent: IAgent, with_goalie: bool) -> Player:
+        nearest_dist = 1000000.0
+        nearest_tm
+        for i in agent.wm.teammates:
+            if i.uniform_number == agent.wm.myself.uniform_number:
+                continue
+            if with_goalie == False and i.uniform_number == agent.wm.our_goalie_uniform_number:
+                continue
+            dist = i.dist_from_self
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_tm = i
+        return nearest_tm
+    
+    def InertiaFinalPoint(initial_pos: Vector2D, initial_vel: Vector2D, decay: float):
+        return initial_pos + Tools.InertiaFinalTravel(initial_vel, decay)
+    
+    def InertiaFinalTravel(initial_vel: Vector2D, decay: float):
+        return initial_vel / (1.0 - decay)

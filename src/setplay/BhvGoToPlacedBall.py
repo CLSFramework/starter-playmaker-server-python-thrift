@@ -4,7 +4,7 @@ from pyrusgeom.vector_2d import Vector2D
 from src.setplay.BhvSetPlay import BhvSetPlay
 from src.Tools import Tools
 
-class Bhv_GoToPlacedBall:
+class BhvGoToPlacedBall:
     
     def __init__(self, angle: float):
         self.M_ball_place_angle = angle  
