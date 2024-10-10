@@ -295,3 +295,24 @@ class Tools:
     
     def InertiaFinalTravel(initial_vel: Vector2D, decay: float):
         return initial_vel / (1.0 - decay)
+    
+    def calc_first_term_geom_series_last(last_term: float, sum: float, r: float):
+        if math.fabs(last_term) < 0.001:
+            return sum * (1.0 - r)
+        inverse = 1.0 / r
+        tmp = 1.0 + sum * (inverse - 1.0) / last_term
+        if tmp < 0.001:
+            return last_term
+        return last_term * pow(inverse, math.log(tmp) / math.log(inverse))
+    
+    def TeammatesFromBall(agent: IAgent):
+
+        tms = agent.wm.teammates
+        for i in tms:
+            if i == None or i.uniform_number == agent.wm.myself.uniform_number or i.uniform_number < 0:
+                tms.remove(i)
+        for i in range(0, len(tms)):
+            for j in range(i + 1, len(tms)):
+                if tms[i].dist_from_ball > tms[j].dist_from_ball:
+                    Tools.swap(tms[i], tms[j])
+        return tms
