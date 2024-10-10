@@ -46,7 +46,7 @@ class BhvSetPlayFreeKick:
             ball_move_dist = ball_position.dist(target_point)
             ball_reach_step = math.ceil(calc_length_geom_series(max_ball_speed, ball_move_dist, ServerParam.i().ballDecay()))
             ball_speed = 0.0
-            
+            ----------------------------------------------------------------------------
             if ball_reach_step > 3:
                 ball_speed = calc_first_term_geom_series(ball_move_dist, ServerParam.i().ballDecay(), ball_reach_step)
             else:

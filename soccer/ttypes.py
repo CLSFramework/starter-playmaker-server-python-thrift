@@ -1337,12 +1337,13 @@ class Self(object):
      - recovery
      - stamina_capacity
      - card
+     - catch_time
      - effort
 
     """
 
 
-    def __init__(self, position=None, seen_position=None, heard_position=None, velocity=None, seen_velocity=None, pos_count=None, seen_pos_count=None, heard_pos_count=None, vel_count=None, seen_vel_count=None, ghost_count=None, id=None, side=None, uniform_number=None, uniform_number_count=None, is_goalie=None, body_direction=None, body_direction_count=None, face_direction=None, face_direction_count=None, point_to_direction=None, point_to_direction_count=None, is_kicking=None, dist_from_ball=None, angle_from_ball=None, ball_reach_steps=None, is_tackling=None, relative_neck_direction=None, stamina=None, is_kickable=None, catch_probability=None, tackle_probability=None, foul_probability=None, view_width=None, type_id=None, kick_rate=None, recovery=None, stamina_capacity=None, card=None, effort=None,):
+    def __init__(self, position=None, seen_position=None, heard_position=None, velocity=None, seen_velocity=None, pos_count=None, seen_pos_count=None, heard_pos_count=None, vel_count=None, seen_vel_count=None, ghost_count=None, id=None, side=None, uniform_number=None, uniform_number_count=None, is_goalie=None, body_direction=None, body_direction_count=None, face_direction=None, face_direction_count=None, point_to_direction=None, point_to_direction_count=None, is_kicking=None, dist_from_ball=None, angle_from_ball=None, ball_reach_steps=None, is_tackling=None, relative_neck_direction=None, stamina=None, is_kickable=None, catch_probability=None, tackle_probability=None, foul_probability=None, view_width=None, type_id=None, kick_rate=None, recovery=None, stamina_capacity=None, card=None, catch_time=None, effort=None,):
         self.position = position
         self.seen_position = seen_position
         self.heard_position = heard_position
@@ -1382,6 +1383,7 @@ class Self(object):
         self.recovery = recovery
         self.stamina_capacity = stamina_capacity
         self.card = card
+        self.catch_time = catch_time
         self.effort = effort
 
     def read(self, iprot):
@@ -1593,6 +1595,11 @@ class Self(object):
                     self.card = iprot.readI32()
                 else:
                     iprot.skip(ftype)
+            elif fid == 40:
+                if ftype == TType.I32:
+                    self.catch_time = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
             elif fid == 41:
                 if ftype == TType.DOUBLE:
                     self.effort = iprot.readDouble()
@@ -1763,6 +1770,10 @@ class Self(object):
         if self.card is not None:
             oprot.writeFieldBegin('card', TType.I32, 39)
             oprot.writeI32(self.card)
+            oprot.writeFieldEnd()
+        if self.catch_time is not None:
+            oprot.writeFieldBegin('catch_time', TType.I32, 40)
+            oprot.writeI32(self.catch_time)
             oprot.writeFieldEnd()
         if self.effort is not None:
             oprot.writeFieldBegin('effort', TType.DOUBLE, 41)
@@ -2149,11 +2160,12 @@ class WorldModel(object):
      - kickable_teammate_existance
      - kickable_opponent_existance
      - penalty_kick_state
+     - see_time
 
     """
 
 
-    def __init__(self, intercept_table=None, our_team_name=None, their_team_name=None, our_side=None, last_set_play_start_time=None, myself=None, ball=None, teammates=None, opponents=None, unknowns=None, our_players_dict=None, their_players_dict=None, our_goalie_uniform_number=None, their_goalie_uniform_number=None, offside_line_x=None, offside_line_x_count=None, kickable_teammate_id=None, kickable_opponent_id=None, last_kick_side=None, last_kicker_uniform_number=None, cycle=None, game_mode_type=None, left_team_score=None, right_team_score=None, is_our_set_play=None, is_their_set_play=None, stoped_cycle=None, our_team_score=None, their_team_score=None, is_penalty_kick_mode=None, helios_home_positions=None, our_defense_line_x=None, their_defense_line_x=None, our_defense_player_line_x=None, their_defense_player_line_x=None, kickable_teammate_existance=None, kickable_opponent_existance=None, penalty_kick_state=None,):
+    def __init__(self, intercept_table=None, our_team_name=None, their_team_name=None, our_side=None, last_set_play_start_time=None, myself=None, ball=None, teammates=None, opponents=None, unknowns=None, our_players_dict=None, their_players_dict=None, our_goalie_uniform_number=None, their_goalie_uniform_number=None, offside_line_x=None, offside_line_x_count=None, kickable_teammate_id=None, kickable_opponent_id=None, last_kick_side=None, last_kicker_uniform_number=None, cycle=None, game_mode_type=None, left_team_score=None, right_team_score=None, is_our_set_play=None, is_their_set_play=None, stoped_cycle=None, our_team_score=None, their_team_score=None, is_penalty_kick_mode=None, helios_home_positions=None, our_defense_line_x=None, their_defense_line_x=None, our_defense_player_line_x=None, their_defense_player_line_x=None, kickable_teammate_existance=None, kickable_opponent_existance=None, penalty_kick_state=None, see_time=None,):
         self.intercept_table = intercept_table
         self.our_team_name = our_team_name
         self.their_team_name = their_team_name
@@ -2192,6 +2204,7 @@ class WorldModel(object):
         self.kickable_teammate_existance = kickable_teammate_existance
         self.kickable_opponent_existance = kickable_opponent_existance
         self.penalty_kick_state = penalty_kick_state
+        self.see_time = see_time
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2435,6 +2448,11 @@ class WorldModel(object):
                     self.penalty_kick_state.read(iprot)
                 else:
                     iprot.skip(ftype)
+            elif fid == 39:
+                if ftype == TType.I32:
+                    self.see_time = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -2617,6 +2635,10 @@ class WorldModel(object):
         if self.penalty_kick_state is not None:
             oprot.writeFieldBegin('penalty_kick_state', TType.STRUCT, 38)
             self.penalty_kick_state.write(oprot)
+            oprot.writeFieldEnd()
+        if self.see_time is not None:
+            oprot.writeFieldBegin('see_time', TType.I32, 39)
+            oprot.writeI32(self.see_time)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -14558,7 +14580,7 @@ Self.thrift_spec = (
     (37, TType.DOUBLE, 'recovery', None, None, ),  # 37
     (38, TType.DOUBLE, 'stamina_capacity', None, None, ),  # 38
     (39, TType.I32, 'card', None, None, ),  # 39
-    None,  # 40
+    (40, TType.I32, 'catch_time', None, None, ),  # 40
     (41, TType.DOUBLE, 'effort', None, None, ),  # 41
 )
 all_structs.append(InterceptInfo)
@@ -14630,6 +14652,7 @@ WorldModel.thrift_spec = (
     (36, TType.BOOL, 'kickable_teammate_existance', None, None, ),  # 36
     (37, TType.BOOL, 'kickable_opponent_existance', None, None, ),  # 37
     (38, TType.STRUCT, 'penalty_kick_state', [PenaltyKickState, None], None, ),  # 38
+    (39, TType.I32, 'see_time', None, None, ),  # 39
 )
 all_structs.append(State)
 State.thrift_spec = (

@@ -173,7 +173,8 @@ struct Self {
   37: double recovery,
   38: double stamina_capacity
   39: CardType card,
-    41: double effort
+  40: i32 catch_time,
+  41: double effort
 }
 
 enum InterceptActionType {
@@ -283,7 +284,8 @@ struct WorldModel {
   35: double their_defense_player_line_x,
   36: bool kickable_teammate_existance,
   37: bool kickable_opponent_existance,
-  38: PenaltyKickState penalty_kick_state
+  38: PenaltyKickState penalty_kick_state,
+  39: i32 see_time
 }
 
 struct State {

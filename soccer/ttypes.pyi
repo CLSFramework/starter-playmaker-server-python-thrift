@@ -136,7 +136,7 @@ class Player(object):
     type_id: int
 
 class Self(object):
-    def __init__(self, position: RpcVector2D = None, seen_position: RpcVector2D = None, heard_position: RpcVector2D = None, velocity: RpcVector2D = None, seen_velocity: RpcVector2D = None, pos_count: int = None, seen_pos_count: int = None, heard_pos_count: int = None, vel_count: int = None, seen_vel_count: int = None, ghost_count: int = None, id: int = None, side: Side = None, uniform_number: int = None, uniform_number_count: int = None, is_goalie: bool = None, body_direction: float = None, body_direction_count: int = None, face_direction: float = None, face_direction_count: int = None, point_to_direction: float = None, point_to_direction_count: int = None, is_kicking: bool = None, dist_from_ball: float = None, angle_from_ball: float = None, ball_reach_steps: int = None, is_tackling: bool = None, relative_neck_direction: float = None, stamina: float = None, is_kickable: bool = None, catch_probability: float = None, tackle_probability: float = None, foul_probability: float = None, view_width: ViewWidth = None, type_id: int = None, kick_rate: float = None, recovery: float = None, stamina_capacity: float = None, card: CardType = None, effort: float = None):
+    def __init__(self, position: RpcVector2D = None, seen_position: RpcVector2D = None, heard_position: RpcVector2D = None, velocity: RpcVector2D = None, seen_velocity: RpcVector2D = None, pos_count: int = None, seen_pos_count: int = None, heard_pos_count: int = None, vel_count: int = None, seen_vel_count: int = None, ghost_count: int = None, id: int = None, side: Side = None, uniform_number: int = None, uniform_number_count: int = None, is_goalie: bool = None, body_direction: float = None, body_direction_count: int = None, face_direction: float = None, face_direction_count: int = None, point_to_direction: float = None, point_to_direction_count: int = None, is_kicking: bool = None, dist_from_ball: float = None, angle_from_ball: float = None, ball_reach_steps: int = None, is_tackling: bool = None, relative_neck_direction: float = None, stamina: float = None, is_kickable: bool = None, catch_probability: float = None, tackle_probability: float = None, foul_probability: float = None, view_width: ViewWidth = None, type_id: int = None, kick_rate: float = None, recovery: float = None, stamina_capacity: float = None, card: CardType = None, catch_time: int = None, effort: float = None):
         pass
     position: RpcVector2D
     seen_position: RpcVector2D
@@ -177,6 +177,7 @@ class Self(object):
     recovery: float
     stamina_capacity: float
     card: CardType
+    catch_time: int
     effort: float
 
 class InterceptActionType(Enum):
@@ -249,7 +250,7 @@ class GameModeType(Enum):
     MODE_MAX = auto()
 
 class WorldModel(object):
-    def __init__(self, intercept_table: InterceptTable = None, our_team_name: str = None, their_team_name: str = None, our_side: Side = None, last_set_play_start_time: int = None, myself: Self = None, ball: Ball = None, teammates: List[Player] = None, opponents: List[Player] = None, unknowns: List[Player] = None, our_players_dict: Dict[int, Player] = None, their_players_dict: Dict[int, Player] = None, our_goalie_uniform_number: int = None, their_goalie_uniform_number: int = None, offside_line_x: float = None, offside_line_x_count: int = None, kickable_teammate_id: int = None, kickable_opponent_id: int = None, last_kick_side: Side = None, last_kicker_uniform_number: int = None, cycle: int = None, game_mode_type: GameModeType = None, left_team_score: int = None, right_team_score: int = None, is_our_set_play: bool = None, is_their_set_play: bool = None, stoped_cycle: int = None, our_team_score: int = None, their_team_score: int = None, is_penalty_kick_mode: bool = None, helios_home_positions: Dict[int, RpcVector2D] = None, our_defense_line_x: float = None, their_defense_line_x: float = None, our_defense_player_line_x: float = None, their_defense_player_line_x: float = None, kickable_teammate_existance: bool = None, kickable_opponent_existance: bool = None, penalty_kick_state: PenaltyKickState = None):
+    def __init__(self, intercept_table: InterceptTable = None, our_team_name: str = None, their_team_name: str = None, our_side: Side = None, last_set_play_start_time: int = None, myself: Self = None, ball: Ball = None, teammates: List[Player] = None, opponents: List[Player] = None, unknowns: List[Player] = None, our_players_dict: Dict[int, Player] = None, their_players_dict: Dict[int, Player] = None, our_goalie_uniform_number: int = None, their_goalie_uniform_number: int = None, offside_line_x: float = None, offside_line_x_count: int = None, kickable_teammate_id: int = None, kickable_opponent_id: int = None, last_kick_side: Side = None, last_kicker_uniform_number: int = None, cycle: int = None, game_mode_type: GameModeType = None, left_team_score: int = None, right_team_score: int = None, is_our_set_play: bool = None, is_their_set_play: bool = None, stoped_cycle: int = None, our_team_score: int = None, their_team_score: int = None, is_penalty_kick_mode: bool = None, helios_home_positions: Dict[int, RpcVector2D] = None, our_defense_line_x: float = None, their_defense_line_x: float = None, our_defense_player_line_x: float = None, their_defense_player_line_x: float = None, kickable_teammate_existance: bool = None, kickable_opponent_existance: bool = None, penalty_kick_state: PenaltyKickState = None, see_time: int = None):
         pass
     intercept_table: InterceptTable
     our_team_name: str
@@ -289,6 +290,7 @@ class WorldModel(object):
     kickable_teammate_existance: bool
     kickable_opponent_existance: bool
     penalty_kick_state: PenaltyKickState
+    see_time: int
 
 class State(object):
     def __init__(self, register_response: RegisterResponse = None, world_model: WorldModel = None, full_world_model: WorldModel = None):
