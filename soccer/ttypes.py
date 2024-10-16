@@ -2161,11 +2161,13 @@ class WorldModel(object):
      - kickable_opponent_existance
      - penalty_kick_state
      - see_time
+     - time_stopped
+     - set_play_count
 
     """
 
 
-    def __init__(self, intercept_table=None, our_team_name=None, their_team_name=None, our_side=None, last_set_play_start_time=None, myself=None, ball=None, teammates=None, opponents=None, unknowns=None, our_players_dict=None, their_players_dict=None, our_goalie_uniform_number=None, their_goalie_uniform_number=None, offside_line_x=None, offside_line_x_count=None, kickable_teammate_id=None, kickable_opponent_id=None, last_kick_side=None, last_kicker_uniform_number=None, cycle=None, game_mode_type=None, left_team_score=None, right_team_score=None, is_our_set_play=None, is_their_set_play=None, stoped_cycle=None, our_team_score=None, their_team_score=None, is_penalty_kick_mode=None, helios_home_positions=None, our_defense_line_x=None, their_defense_line_x=None, our_defense_player_line_x=None, their_defense_player_line_x=None, kickable_teammate_existance=None, kickable_opponent_existance=None, penalty_kick_state=None, see_time=None,):
+    def __init__(self, intercept_table=None, our_team_name=None, their_team_name=None, our_side=None, last_set_play_start_time=None, myself=None, ball=None, teammates=None, opponents=None, unknowns=None, our_players_dict=None, their_players_dict=None, our_goalie_uniform_number=None, their_goalie_uniform_number=None, offside_line_x=None, offside_line_x_count=None, kickable_teammate_id=None, kickable_opponent_id=None, last_kick_side=None, last_kicker_uniform_number=None, cycle=None, game_mode_type=None, left_team_score=None, right_team_score=None, is_our_set_play=None, is_their_set_play=None, stoped_cycle=None, our_team_score=None, their_team_score=None, is_penalty_kick_mode=None, helios_home_positions=None, our_defense_line_x=None, their_defense_line_x=None, our_defense_player_line_x=None, their_defense_player_line_x=None, kickable_teammate_existance=None, kickable_opponent_existance=None, penalty_kick_state=None, see_time=None, time_stopped=None, set_play_count=None,):
         self.intercept_table = intercept_table
         self.our_team_name = our_team_name
         self.their_team_name = their_team_name
@@ -2205,6 +2207,8 @@ class WorldModel(object):
         self.kickable_opponent_existance = kickable_opponent_existance
         self.penalty_kick_state = penalty_kick_state
         self.see_time = see_time
+        self.time_stopped = time_stopped
+        self.set_play_count = set_play_count
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2453,6 +2457,16 @@ class WorldModel(object):
                     self.see_time = iprot.readI32()
                 else:
                     iprot.skip(ftype)
+            elif fid == 40:
+                if ftype == TType.I32:
+                    self.time_stopped = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 41:
+                if ftype == TType.I32:
+                    self.set_play_count = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -2639,6 +2653,14 @@ class WorldModel(object):
         if self.see_time is not None:
             oprot.writeFieldBegin('see_time', TType.I32, 39)
             oprot.writeI32(self.see_time)
+            oprot.writeFieldEnd()
+        if self.time_stopped is not None:
+            oprot.writeFieldBegin('time_stopped', TType.I32, 40)
+            oprot.writeI32(self.time_stopped)
+            oprot.writeFieldEnd()
+        if self.set_play_count is not None:
+            oprot.writeFieldBegin('set_play_count', TType.I32, 41)
+            oprot.writeI32(self.set_play_count)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -14653,6 +14675,8 @@ WorldModel.thrift_spec = (
     (37, TType.BOOL, 'kickable_opponent_existance', None, None, ),  # 37
     (38, TType.STRUCT, 'penalty_kick_state', [PenaltyKickState, None], None, ),  # 38
     (39, TType.I32, 'see_time', None, None, ),  # 39
+    (40, TType.I32, 'time_stopped', None, None, ),  # 40
+    (41, TType.I32, 'set_play_count', None, None, ),  # 41
 )
 all_structs.append(State)
 State.thrift_spec = (

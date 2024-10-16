@@ -249,7 +249,7 @@ class Tools:
     def swap(x, y):
         return (copy(y), copy(x))
     
-    def OpponentsFromSelf(agent: IAgent):
+    def OpponentsFromSelf(agent: IAgent) -> list[Player]:
 
         opp = agent.wm.opponents
         for i in opp:
@@ -260,6 +260,18 @@ class Tools:
                 if opp[i].dist_from_self > opp[j].dist_from_self:
                     Tools.swap(opp[i], opp[j])
         return opp
+    
+    def TeammatesFromSelf(agent: IAgent) -> list[Player]:
+
+        tms = agent.wm.teammates
+        for i in tms:
+            if i == None or i.uniform_number == agent.wm.myself.uniform_number or i.uniform_number < 0:
+                tms.remove(i)
+        for i in range(0, len(tms)):
+            for j in range(i + 1, len(tms)):
+                if tms[i].dist_from_self > tms[j].dist_from_self:
+                    Tools.swap(tms[i], tms[j])
+        return tms
     
     def OpponentsFromBall(agent: IAgent):
 
@@ -290,6 +302,16 @@ class Tools:
                 nearest_tm = i
         return nearest_tm
     
+    def GetOpponentNearestToSelf(agent: IAgent) -> Player:
+        nearest_dist = 1000000.0
+        nearest_opp
+        for i in agent.wm.opponents:
+            dist = i.dist_from_self
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_opp = i
+        return nearest_opp
+    
     def InertiaFinalPoint(initial_pos: Vector2D, initial_vel: Vector2D, decay: float):
         return initial_pos + Tools.InertiaFinalTravel(initial_vel, decay)
     
@@ -316,3 +338,6 @@ class Tools:
                 if tms[i].dist_from_ball > tms[j].dist_from_ball:
                     Tools.swap(tms[i], tms[j])
         return tms
+    
+    def BallInertiaFinalPoint(initial_pos: Vector2D, initial_vel: Vector2D, ball_decay: float):
+        return Vector2D(initial_pos) + inertia_final_travel(initial_vel, ball_decay)

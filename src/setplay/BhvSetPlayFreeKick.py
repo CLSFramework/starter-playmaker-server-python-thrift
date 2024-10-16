@@ -90,10 +90,10 @@ class BhvSetPlayFreeKick:
         if not Tools.TeammatesFromBall(agent):
             actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(face_point)))
 
-        if wm.set_play_count <= 3: #TODO
+        if wm.set_play_count <= 3:
             actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(face_point)))
 
-        if wm.get_set_play_count() >= 15 and wm.see_time == wm.cycle and wm.myself.stamina > agent.serverParams.stamina_max * 0.6: #TODO
+        if wm.set_play_count >= 15 and wm.see_time == wm.cycle and wm.myself.stamina > agent.serverParams.stamina_max * 0.6:
             return []
         
         if abs(face_angle - wm.myself.body_direction) > 5.0:
@@ -112,7 +112,7 @@ class BhvSetPlayFreeKick:
         target_point = Vector2D(target_point_rpc.x, target_point_rpc.y)
         ball_positions = Vector2D(wm.ball.position.x, wm.ball.position.y)
         self_positions = Vector2D(wm.myself.position.x, wm.myself.position.y)
-        if wm.get_set_play_count > 0 and wm.myself.stamina > agent.serverParams.stamina_max * 0.9: #TODO
+        if wm.set_play_count > 0 and wm.myself.stamina > agent.serverParams.stamina_max * 0.9:
             nearest_opp = Tools.OpponentsFromSelf(agent)[0]
 
             if nearest_opp and nearest_opp.dist_from_self < 3.0:
