@@ -4,79 +4,72 @@ from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.segment_2d import Segment2D
 from pyrusgeom.circle_2d import Circle2D
+from soccer.ttypes import *
+from src.setplay.BhvSetPlay import BhvSetPlay
+from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+from src.Pass import Pass
+from src.Tools import Tools
 
 class Bhv_SetPlayIndirectFreeKick:
     def __init__(self):
         pass
 
-    def execute(self, agent):
+    def Decision(self, agent):
         wm = agent.wm
-        our_kick = (wm.game_mode.type == 'BackPass' and wm.game_mode.side == wm.their_side) or \
-                   (wm.game_mode.type == 'IndFreeKick' and wm.game_mode.side == wm.our_side) or \
-                   (wm.game_mode.type == 'FoulCharge' and wm.game_mode.side == wm.their_side) or \
-                   (wm.game_mode.type == 'FoulPush' and wm.game_mode.side == wm.their_side)
+        #TODO side
+        ''' our_kick = (GameModeType == GameModeType.BackPass_ and wm.gamemode.side == Side) or 
+                   (wm.game_mode.type == 'IndFreeKick' and wm.game_mode.side == wm.our_side) or 
+                   (wm.game_mode.type == 'FoulCharge' and wm.game_mode.side == wm.their_side) or 
+                   (wm.game_mode.type == 'FoulPush' and wm.game_mode.side == wm.their_side)'''
+        our_kick = True
 
         if our_kick:
-            print(f"({__file__}): (execute) our kick")
-            if Bhv_SetPlay.is_kicker(agent):
-                self.do_kicker(agent)
+            if BhvSetPlay.is_kicker(agent):
+                return self.do_kicker(agent)
             else:
-                self.do_offense_move(agent)
+                return self.do_offense_move(agent)
         else:
-            print(f"({__file__}): (execute) their kick")
-            self.do_defense_move(agent)
+            return self.do_defense_move(agent)
 
-        return True
+        return []
 
     def do_kicker(self, agent):
         # go to ball
-        if Bhv_GoToPlacedBall(0.0).execute(agent):
-            return
+        actions = []
+        actions += BhvGoToPlacedBall.Decision(agent=agent)
 
         # wait
-        if self.do_kick_wait(agent):
-            return
+        actions += self.do_kick_wait(agent)
 
         # kick to the teammate exist at the front of their goal
-        if self.do_kick_to_shooter(agent):
-            return
+        actions += self.do_kick_to_shooter(agent)
 
         wm = agent.wm
         max_kick_speed = wm.self.kick_rate * ServerParam.i.max_power
 
         # pass
-        #Bhv_BasicOffensiveKick().pass(agent, 1) TODO
+        actions += Pass.Decision(agent)
         # wait(2)
-        if wm.get_set_play_count() <= 3:
-            Body_TurnToPoint(Vector2D(50.0, 0.0)).execute(agent)
-            agent.set_neck_action(Neck_ScanField())
-            return
+        if wm.set_play_count <= 3:
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(50, 0))))
 
         # no teammate
-        if not wm.teammates_from_ball() or \
-           wm.teammates_from_ball()[0].dist_from_self() > 35.0 or \
-           wm.teammates_from_ball()[0].pos().x < -30.0:
-            real_set_play_count = int(wm.time().cycle - wm.last_set_play_start_time().cycle)
-            if real_set_play_count <= ServerParam.i.drop_ball_time() - 3:
-                print(f"({__file__}): (doKick) real set play count = {real_set_play_count} <= drop_time-3, wait...")
-                Body_TurnToPoint(Vector2D(50.0, 0.0)).execute(agent)
-                agent.set_neck_action(Neck_ScanField())
-                return
+        if not Tools.TeammatesFromBall(agent) or Tools.TeammatesFromBall()[0].dist_from_self > 35.0 or Tools.TeammatesFromBall()[0].pos.x < -30.0:
+            real_set_play_count = int(wm.cycle - wm.last_set_play_start_time)
+            if real_set_play_count <= agent.serverParams.drop_ball_time - 3:
+                actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(50, 0))))
 
-            target_point = Vector2D(ServerParam.i.pitch_half_length(),
-                                   (-1 + 2 * wm.time().cycle % 2) * (ServerParam.i.goal_half_width() - 0.8))
+
+            target_point = Vector2D(agent.serverParams.pitch_half_length,
+                                   (-1 + 2 * wm.cycle % 2) * (agent.serverParams.goal_half_width - 0.8))
             ball_speed = max_kick_speed
-
-            agent.debug_client.add_message("IndKick:ForceShoot")
-            agent.debug_client.set_target(target_point)
-            print(f"({__file__}):  kick to goal ({target_point.x:.1f} {target_point.y:.1f}) speed={ball_speed:.2f}")
-
-            Body_KickOneStep(target_point, ball_speed).execute(agent)
-            agent.set_neck_action(Neck_ScanField())
-            return
+            actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), ball_speed)))
+            
+            return actions
 
         # kick to the teammate nearest to opponent goal
-        goal = Vector2D(ServerParam.i.pitch_half_length(), wm.self().pos().y * 0.8)
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        goal = Vector2D(agent.serverParams.pitch_half_length, self_position.y() * 0.8)
 
         min_dist = 100000.0
         receiver = None
