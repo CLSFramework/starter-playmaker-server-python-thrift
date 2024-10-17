@@ -1118,7 +1118,9 @@ struct ServerParam {
   219: double their_penalty_area_line_x,
   220: double penalty_area_half_width,
   221: double penalty_area_length,
-  222: double goal_width
+  222: double goal_width,
+  223: double goal_area_width,
+  224: double goal_area_length
 }
 
 struct PlayerParam {
