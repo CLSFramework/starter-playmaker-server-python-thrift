@@ -1,7 +1,9 @@
 from src.IAgent import IAgent
 from SetPlay.BhvSetPlay import Bhv_SetPlay
 from soccer.ttypes import *
+from Strategy import *
 from pyrusgeom.vector_2d import Vector2D
+from Tools import Tools
 from pyrusgeom.soccer_math import inertia_n_step_point
 from pyrusgeom.ray_2d import Ray2D
 from pyrusgeom.size_2d import Size2D
@@ -33,7 +35,7 @@ class BhvTheirGoalKickMove:
                 return True
         else:
             if (wm.ball.position.x > agent.serverParams.their_penalty_area_line_x() + 7.0 and
-                wm.ball.position.abs_y() < agent.serverParams.goal_area_half_width() + 2.0):
+                abs(wm.ball.position.y) < (agent.serverParams.goal_width/2.0) + 2.0):
                 BhvTheirGoalKickMove.do_normal(agent)
                 return True
 
@@ -43,12 +45,12 @@ class BhvTheirGoalKickMove:
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: penalty area intersection ({intersection.x:.1f} {intersection.y:.1f})")
 
         min_dist = 100.0
-        wm.get_teammate_nearest_to(intersection, 10, min_dist)
+        Tools.get_nearest_teammate(intersection, 10, min_dist)
         if min_dist < wm.myself.position.dist(intersection):
             BhvTheirGoalKickMove.do_normal(agent)
             return True
 
-        dash_power = wm.myself.get_safety_dash_power(agent.serverParams.max_dash_power() * 0.8)
+        dash_power = agent.serverParams.max_dash_power() * 0.8
 
         if intersection.x < agent.serverParams.their_penalty_area_line_x() and \
            wm.myself.position.x > agent.serverParams.their_penalty_area_line_x() - 0.5:
@@ -56,7 +58,7 @@ class BhvTheirGoalKickMove:
             if wm.myself.position.y < 0.0:
                 intersection.y *= -1.0
         elif intersection.y > agent.serverParams.penalty_area_half_width() and \
-             wm.myself.position.abs_y() < agent.serverParams.penalty_area_half_width() + 0.5:
+             abs(wm.myself.position.y) < agent.serverParams.penalty_area_half_width() + 0.5:
             intersection.y = agent.serverParams.penalty_area_half_width() + 0.5
             if wm.myself.position.y < 0.0:
                 intersection.y *= -1.0
@@ -64,9 +66,9 @@ class BhvTheirGoalKickMove:
         dist_thr = max(wm.ball.dist_from_self * 0.07, 1.0)
 
         if not BodyGoToPoint(intersection, dist_thr, dash_power).execute(agent):
-            BodyTurnToBall().execute(agent)
+            agent.add_action(PlayerAction(body_turn_to_ball=Body_TurnToBall(0)))
         
-        agent.set_neck_action(NeckScanField())
+        agent.add_action(PlayerAction(neck_scan_field=Neck_ScanField(0)))
         return True
 
     @staticmethod
@@ -74,7 +76,7 @@ class BhvTheirGoalKickMove:
         wm = agent.wm
         dash_power = Bhv_SetPlay.get_set_play_dash_power(agent)
 
-        target_point = Strategy.i().get_home_position(wm, wm.myself.unum())
+        target_point = Vector2D(Strategy.get_home_pos(wm, wm.myself.uniform_number))
 
         # Attract to ball
         if target_point.x > 25.0 and (target_point.y * wm.ball.position.y < 0.0 or target_point.abs_y() < 10.0):
@@ -90,11 +92,11 @@ class BhvTheirGoalKickMove:
 
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: doNormal target_point({target_point.x:.1f} {target_point.y:.1f})")
 
-        dist_thr = max(wm.ball().dist_from_self() * 0.07, 1.0)
+        dist_thr = max(wm.ball.dist_from_self * 0.07, 1.0)
         if not BodyGoToPoint(target_point, dist_thr, dash_power).execute(agent):
-            BodyTurnToBall().execute(agent)
+            agent.add_action(PlayerAction(body_turn_to_ball=Body_TurnToBall(0)))
         
-        agent.set_neck_action(NeckTurnToBallOrScan(0))
+        agent.add_action(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
 
     @staticmethod
     def do_chase_ball(agent: IAgent) -> bool:
@@ -108,7 +110,7 @@ class BhvTheirGoalKickMove:
         if self_min > 10:
             return False
 
-        get_pos = Vector2D(wm.ball.inertia_point(self_min))
+        get_pos = Vector2D(Tools.inertia_point(wm.ball.position,wm.ball.velocity,self_min,ServerParam.ball_decay))
 
         pen_x = agent.serverParams.their_penalty_area_line_x() - 1.0
         pen_y = agent.serverParams.penalty_area_half_width() + 1.0
@@ -122,13 +124,13 @@ class BhvTheirGoalKickMove:
 
         if (get_pos.x > pen_x and
             wm.myself.position.x < pen_x and
-            wm.myself.position.abs_y() < pen_y - 0.5):
+            abs(wm.myself.position.y) < pen_y - 0.5):
             return False
 
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: doChaseBall. cycle = {self_min}  get_pos({get_pos.x:.2f} {get_pos.y:.2f})")
 
         # Can chase!!
-        agent.debug_client().add_message("GKickGetBall")
-        BodyIntercept().execute(agent)
-        agent.set_neck_action(NeckTurnToBallOrScan(0))
+        agent.add_log_text(LoggerLevel.TEAM,f"{__file__}:GKickGetBall")
+        agent.add_action(PlayerAction(body_intercept=Body_Intercept()))
+        agent.add_action(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
         return True
