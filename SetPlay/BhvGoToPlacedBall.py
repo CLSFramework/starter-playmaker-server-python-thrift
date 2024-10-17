@@ -4,7 +4,7 @@ from pyrusgeom.vector_2d import Vector2D
 
 class Bhv_GoToPlacedBall:
     
-    def __init__(self):
+    def __init__(self, angle: float):
         self.M_ball_place_angle = 0.0  
         pass
 
