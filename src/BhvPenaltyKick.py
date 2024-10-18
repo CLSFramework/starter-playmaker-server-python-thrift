@@ -3,6 +3,7 @@ import math
 from src.Dribble import Dribble
 from soccer.ttypes import *
 from src.Tools import Tools
+from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.angle_deg import AngleDeg
 from pyrusgeom.soccer_math import inertia_n_step_point
@@ -70,7 +71,7 @@ class BhvPenaltyKick:
             
 
     def doKickerSetup(self, agent: IAgent):
-        
+        actions = []
         goal_c = Vector2D(agent.serverParams.pitch_half_length, 0.0)
         opps = agent.wm.opponents
         opp_goalie = None
@@ -80,40 +81,35 @@ class BhvPenaltyKick:
         
         place_angle = 0.0
 
-        if not self.Bhv_GoToPlacedBall(place_angle): # add Bhv_GoToPlacedBall TODO
-            agent.add_action(PlayerAction(body_turn_to_point= Body_TurnToPoint(goal_c)))
+        if not BhvGoToPlacedBall.Decision(place_angle) == []:
+            actions.append((PlayerAction(body_turn_to_point= Body_TurnToPoint(RpcVector2D(goal_c.x(), goal_c.y())))))
             if opp_goalie :
-                agent.add_action(PlayerAction(neck_turn_to_point= Neck_TurnToPoint(opp_goalie.position)))
+                actions.append((PlayerAction(neck_turn_to_point= Neck_TurnToPoint(opp_goalie.position))))
             else : 
-                agent.add_action(PlayerAction(neck_turn_to_point= Neck_TurnToPoint(goal_c)))
-            agent.add_log_text(LoggerLevel.TEAM, "neck to goalie")
-            return Tru
-        return False
+                actions.append((PlayerAction(neck_turn_to_point= Neck_TurnToPoint(goal_c))))
+        return actions
 
-    def doKickerReady(self, agent: IAgent):
+    def doKickerReady(agent: IAgent):
         wm = agent.wm
-        state = wm.penaltyKickState()
+        state = wm.penalty_kick_state
+        PenaltyKickState
+        if wm.myself.stamina < agent.serverParams.stamina_max - 10.0 and (wm.cycle - state.cycle > agent.serverParams.pen_ready_wait - 3):
+            return BhvPenaltyKick.doKickerSetup(agent) #TODO state.cycle
 
-        if wm.myself.stamina() < agent.serverParams.stamina_max - 10.0 and (wm.cycle - state.time().cycle() > agent.serverParams.pen_ready_wait() - 3):
-            return self.doKickerSetup(agent)
+        if not wm.myself.is_kickable:
+            return BhvPenaltyKick.doKickerSetup(agent)
 
-        if not wm.myself.isKickable():
-            return self.doKickerSetup(agent)
-
-        return self.doKicker(agent)
+        return BhvPenaltyKick.doKicker(agent)
 
     def doKicker(self, agent: IAgent):
         wm = agent.wm
-
+        actions = []
         if not wm.myself.is_kickable:
-            if not True : #Body_Intercept(): TODO
-                agent.add_action(PlayerAction(Body_GoToPoint(wm.ball.position,0.4,agent.serverParams.max_dash_power)))
-                agent.add_log_text(LoggerLevel.TEAM, "go to ball")
-                return True
-            if wm.ball.pos_count > 0.0 :
-                agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
-                agent.add_log_text(LoggerLevel.TEAM, "neck to ball")
-            else :
+            actions.append(PlayerAction(body_intercept=Body_Intercept()))
+            actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(wm.ball.position, 0.4, agent.serverParams.max_dash_power)))
+            if wm.ball.pos_count > 0 :
+                actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+            '''else :
                 opps = agent.wm.opponents
                 opp_goalie = None
                 for a in opps :
@@ -125,44 +121,40 @@ class BhvPenaltyKick:
                 else :
                     agent.add_action(PlayerAction(neck_scan_field=Neck_ScanField()))
                     agent.add_log_text(LoggerLevel.TEAM, "neck scan field")
-            return True
+            return True'''
 
 
-        if self.doShoot(agent):
-            return True
+        actions += BhvPenaltyKick.doShoot(agent)
 
-        return self.doDribble(agent)
+        actions += BhvPenaltyKick.doDribble(agent)
+        
+        return actions
 
     def doOneKickShoot(self, agent: IAgent):
         wm = agent.wm
-
-        ball_speed = Vector2D(wm.ball.velocity).r()
-        ball_speed_x = wm.ball.velocity.x
-        ball_speed_y = wm.ball.velocity.y
+        actions = []
+        ball_speed = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y).r()
         
         if not agent.serverParams.pen_allow_mult_kicks and ball_speed > 0.3 : 
-             return False
+             return []
         
         # go to the ball side 
         if not wm.myself.is_kickable :
-            agent.add_action(PlayerAction(body_go_to_point=Body_GoToPoint(wm.ball.position,0.4,agent.serverParams.max_dash_power)))
-            agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
-            return True
+            actions.append((PlayerAction(body_go_to_point=Body_GoToPoint(wm.ball.position,0.4,agent.serverParams.max_dash_power))))
         
         # turn to the ball to get the maximal kick rate
-        if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 0.3 :
-            agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+        if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 0.3:
             opps = agent.wm.opponents
             opp_goalie = None
             for a in opps :
                 if a.uniform_number == agent.wm.their_goalie_uniform_number :
                     opp_goalie = a
             if opp_goalie :
-                agent.add_action(PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position)))
+                actions.append((PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position))))
             else :
                 goal_c = Vector2D(agent.serverParams.pitch_half_length, 0.0)
-                agent.add_action(PlayerAction(neck_turn_to_point=Neck_TurnToPoint(goal_c)))
-            return True
+                actions.append((PlayerAction(neck_turn_to_point=Neck_TurnToPoint(RpcVector2D(goal_c.x(), goal_c.y())))))
+                return actions
         opps = agent.wm.opponents
         opp_goalie = None
         for a in opps :
@@ -178,10 +170,10 @@ class BhvPenaltyKick:
                 if opp_goalie.body_direction > 0.0 :
                     shoot_point.y() *= -1.0 
         
-        agent.add_action(PlayerAction(body_kick_one_step=Body_KickOneStep(shoot_point,agent.serverParams.ball_speed_max)))
+        actions.append((PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(shoot_point.x(), shoot_point.y()),agent.serverParams.ball_speed_max))))
 
 
-        return True
+        return actions
 
     def doShoot(self, agent: IAgent):
         wm = agent.wm
