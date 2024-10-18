@@ -7,7 +7,7 @@ from src.IAgent import IAgent
 import math
 from soccer.ttypes import PlayerType, Player, GameModeType, ServerParam
 from copy import copy
-
+from soccer.ttypes import RpcVector2D
 
 class Tools:
     @staticmethod
@@ -249,7 +249,7 @@ class Tools:
     def swap(x, y):
         return (copy(y), copy(x))
     
-    def OpponentsFromSelf(agent: IAgent):
+    def OpponentsFromSelf(agent: IAgent) -> list[Player]:
 
         opp = agent.wm.opponents
         for i in opp:
@@ -260,6 +260,18 @@ class Tools:
                 if opp[i].dist_from_self > opp[j].dist_from_self:
                     Tools.swap(opp[i], opp[j])
         return opp
+    
+    def TeammatesFromSelf(agent: IAgent) -> list[Player]:
+
+        tms = agent.wm.teammates
+        for i in tms:
+            if i == None or i.uniform_number == agent.wm.myself.uniform_number or i.uniform_number < 0:
+                tms.remove(i)
+        for i in range(0, len(tms)):
+            for j in range(i + 1, len(tms)):
+                if tms[i].dist_from_self > tms[j].dist_from_self:
+                    Tools.swap(tms[i], tms[j])
+        return tms
     
     def OpponentsFromBall(agent: IAgent):
 
@@ -272,3 +284,86 @@ class Tools:
                 if opp[i].dist_from_ball > opp[j].dist_from_ball:
                     Tools.swap(opp[i], opp[j])
         return opp
+    
+    def GetDashPowerToKeepSpeed(agent: IAgent, speed: float, effort: float):
+        return speed * ((1.0 - agent.playerTypes[agent.wm.myself.id].player_decay) / (agent.playerTypes[agent.wm.myself.id].dash_power_rate * effort))
+    
+    def GetTeammateNearestToSelf(agent: IAgent, with_goalie: bool) -> Player:
+        nearest_dist = 1000000.0
+        nearest_tm
+        for i in agent.wm.teammates:
+            if i.uniform_number == agent.wm.myself.uniform_number:
+                continue
+            if with_goalie == False and i.uniform_number == agent.wm.our_goalie_uniform_number:
+                continue
+            dist = i.dist_from_self
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_tm = i
+        return nearest_tm
+    
+    def GetOpponentNearestToSelf(agent: IAgent) -> Player:
+        nearest_dist = 1000000.0
+        nearest_opp
+        for i in agent.wm.opponents:
+            dist = i.dist_from_self
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_opp = i
+        return nearest_opp
+    
+    def GetTeammateNearestTo(agent: IAgent, point: RpcVector2D) -> Player:
+        point_vec = Vector2D(point.x, point.y)
+        nearest_dist = 1000000.0
+        nearest_tm
+        for i in agent.wm.teammates:
+            if i.uniform_number == agent.wm.myself.uniform_number:
+                continue
+            i_pos = Vector2D(i.position.x, i.position.y)
+            dist = i_pos.dist(point_vec)
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_tm = i
+        return nearest_tm
+    
+    def GetOpponentNearestTo(agent: IAgent, point: RpcVector2D) -> Player:
+        point_vec = Vector2D(point.x, point.y)
+        nearest_dist = 1000000.0
+        nearest_opp
+        for i in agent.wm.opponents:
+            i_pos = Vector2D(i.position.x, i.position.y)
+            dist = i_pos.dist(point_vec)
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest_opp = i
+        return nearest_opp
+    
+    def InertiaFinalPoint(initial_pos: Vector2D, initial_vel: Vector2D, decay: float):
+        return initial_pos + Tools.InertiaFinalTravel(initial_vel, decay)
+    
+    def InertiaFinalTravel(initial_vel: Vector2D, decay: float):
+        return initial_vel / (1.0 - decay)
+    
+    def calc_first_term_geom_series_last(last_term: float, sum: float, r: float):
+        if math.fabs(last_term) < 0.001:
+            return sum * (1.0 - r)
+        inverse = 1.0 / r
+        tmp = 1.0 + sum * (inverse - 1.0) / last_term
+        if tmp < 0.001:
+            return last_term
+        return last_term * pow(inverse, math.log(tmp) / math.log(inverse))
+    
+    def TeammatesFromBall(agent: IAgent):
+
+        tms = agent.wm.teammates
+        for i in tms:
+            if i == None or i.uniform_number == agent.wm.myself.uniform_number or i.uniform_number < 0:
+                tms.remove(i)
+        for i in range(0, len(tms)):
+            for j in range(i + 1, len(tms)):
+                if tms[i].dist_from_ball > tms[j].dist_from_ball:
+                    Tools.swap(tms[i], tms[j])
+        return tms
+    
+    def BallInertiaFinalPoint(initial_pos: Vector2D, initial_vel: Vector2D, ball_decay: float):
+        return Vector2D(initial_pos) + inertia_final_travel(initial_vel, ball_decay)
