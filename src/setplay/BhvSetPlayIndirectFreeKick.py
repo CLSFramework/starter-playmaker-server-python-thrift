@@ -9,18 +9,21 @@ from src.setplay.BhvSetPlay import BhvSetPlay
 from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from src.Pass import Pass
 from src.Tools import Tools
+from src.setplay.BhvSetPlay import BhvSetPlay
+from src.Strategy import Strategy
+import pyrusgeom.soccer_math as smath
+from pyrusgeom.soccer_math import *
+from pyrusgeom.geom_2d import *
+import math
 
 class Bhv_SetPlayIndirectFreeKick:
     def __init__(self):
         pass
 
-    def Decision(self, agent):
+    def Decision(self, agent: IAgent):
         wm = agent.wm
         #TODO side
-        ''' our_kick = (GameModeType == GameModeType.BackPass_ and wm.gamemode.side == Side) or 
-                   (wm.game_mode.type == 'IndFreeKick' and wm.game_mode.side == wm.our_side) or 
-                   (wm.game_mode.type == 'FoulCharge' and wm.game_mode.side == wm.their_side) or 
-                   (wm.game_mode.type == 'FoulPush' and wm.game_mode.side == wm.their_side)'''
+        our_kick = (wm.game_mode_type == GameModeType.BackPass_ and wm.gamemode.side == Side) or (wm.game_mode_type == GameModeType.IndFreeKick_ and wm.game_mode.side == wm.our_side) or (wm.game_mode_type == GameModeType.FoulCharge_ and wm.game_mode.side == wm.their_side) or (wm.game_mode_type == GameModeType.FoulPush_ and  == wm.their_side ) #TODO side
         our_kick = True
 
         if our_kick:
@@ -33,7 +36,7 @@ class Bhv_SetPlayIndirectFreeKick:
 
         return []
 
-    def do_kicker(self, agent):
+    def do_kicker(self, agent: IAgent):
         # go to ball
         actions = []
         actions += BhvGoToPlacedBall.Decision(agent=agent)
@@ -45,7 +48,7 @@ class Bhv_SetPlayIndirectFreeKick:
         actions += self.do_kick_to_shooter(agent)
 
         wm = agent.wm
-        max_kick_speed = wm.self.kick_rate * ServerParam.i.max_power
+        max_kick_speed = wm.self.kick_rate * agent.serverParams.max_power
 
         # pass
         actions += Pass.Decision(agent)
@@ -54,14 +57,14 @@ class Bhv_SetPlayIndirectFreeKick:
             actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(50, 0))))
 
         # no teammate
-        if not Tools.TeammatesFromBall(agent) or Tools.TeammatesFromBall()[0].dist_from_self > 35.0 or Tools.TeammatesFromBall()[0].pos.x < -30.0:
+        if not Tools.TeammatesFromBall(agent) or Tools.TeammatesFromBall()[0].dist_from_self > 35.0 or Tools.TeammatesFromBall()[0].position.x < -30.0:
             real_set_play_count = int(wm.cycle - wm.last_set_play_start_time)
             if real_set_play_count <= agent.serverParams.drop_ball_time - 3:
                 actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(50, 0))))
 
 
             target_point = Vector2D(agent.serverParams.pitch_half_length,
-                                   (-1 + 2 * wm.cycle % 2) * (agent.serverParams.goal_half_width - 0.8))
+                                   (-1 + 2 * wm.cycle % 2) * (agent.serverParams.goal_width / 2 - 0.8))
             ball_speed = max_kick_speed
             actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), ball_speed)))
             
@@ -74,17 +77,15 @@ class Bhv_SetPlayIndirectFreeKick:
         min_dist = 100000.0
         receiver = None
 
-        for t in wm.teammates_from_ball():
-            if t.pos_count() > 5:
+        for t in Tools.TeammatesFromBall(agent):
+            if t.dist_from_ball < 1.5:
                 continue
-            if t.dist_from_ball() < 1.5:
+            if t.dist_from_ball > 20.0:
                 continue
-            if t.dist_from_ball() > 20.0:
+            if t.position.x > wm.offside_line_x:
                 continue
-            if t.pos().x > wm.offside_line_x():
-                continue
-
-            dist = t.pos().dist(goal) + t.dist_from_ball()
+            t_position = Vector2D(t.position.x, t.position.y)
+            dist = t_position.dist(goal) + t.dist_from_ball
             if dist < min_dist:
                 min_dist = dist
                 receiver = t
@@ -92,215 +93,183 @@ class Bhv_SetPlayIndirectFreeKick:
         target_point = goal
         target_dist = 10.0
         if not receiver:
-            target_dist = wm.teammates_from_self()[0].dist_from_self()
-            target_point = wm.teammates_from_self()[0].pos()
+            target_dist = Tools.TeammatesFromSelf(agent)()[0].dist_from_self
+            target_point = Tools.TeammatesFromSelf()[0].position
         else:
-            target_dist = receiver.dist_from_self()
-            target_point = receiver.pos()
+            target_dist = receiver.dist_from_self
+            target_point = receiver.position
             target_point.x += 0.6
 
-        ball_speed = self.calc_first_term_geom_series_last(1.8, target_dist, ServerParam.i.ball_decay())
+        ball_speed = Tools.calc_first_term_geom_series_last(1.8, target_dist, agent.serverParams.ball_decay)
         ball_speed = min(ball_speed, max_kick_speed)
 
-        agent.debug_client.add_message(f" IndKick:ForcePass{ball_speed:.3f}")
-        agent.debug_client.set_target(target_point)
-        print(f"({__file__}):  pass to nearest teammate ({target_point.x:.1f} {target_point.y:.1f}) speed={ball_speed:.2f}")
+        actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(target_point, ball_speed)))
+        return actions
+        #agent.add_say_message(BallMessage(agent.effector().queued_next_ball_pos(), agent.effector().queued_next_ball_vel())) #TODO
 
-        Body_KickOneStep(target_point, ball_speed).execute(agent)
-        agent.set_neck_action(Neck_ScanField())
-        agent.add_say_message(BallMessage(agent.effector().queued_next_ball_pos(), agent.effector().queued_next_ball_vel()))
-
-    def do_kick_wait(self, agent):
+    def do_kick_wait(self, agent: IAgent):
         wm = agent.wm
-
+        actions = []
         face_point = Vector2D(50.0, 0.0)
-        face_angle = (face_point - wm.self().pos()).th()
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        face_angle = (face_point - self_position).th()
 
-        if wm.time().stopped() > 0:
-            print(f"({__file__}): (doKickWait) stoppage time")
-            Body_TurnToPoint(face_point).execute(agent)
-            agent.set_neck_action(Neck_ScanField())
-            return True
+        if wm.time_stopped > 0:
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(face_point.x(), face_point.y()))))
 
         if abs(face_angle - wm.self().body()) > 5.0:
-            print(f"({__file__}): (doKickWait) turn to the front of goal")
-            agent.debug_client.add_message("IndKick:TurnTo")
-            agent.debug_client.set_target(face_point)
-            Body_TurnToPoint(face_point).execute(agent)
-            agent.set_neck_action(Neck_ScanField())
-            return True
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(face_point.x(), face_point.y()))))
 
-        if wm.get_set_play_count() <= 10 and not wm.teammates_from_self():
-            print(f"({__file__}): (doKickWait) no teammate")
-            agent.debug_client.add_message("IndKick:NoTeammate")
-            agent.debug_client.set_target(face_point)
-            Body_TurnToPoint(face_point).execute(agent)
-            agent.set_neck_action(Neck_ScanField())
-            return True
+        if wm.set_play_count <= 10 and not Tools.TeammatesFromSelf(agent):
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(face_point.x(), face_point.y()))))
 
-        return False
+        return actions
 
-    def do_kick_to_shooter(self, agent):
+    def do_kick_to_shooter(self, agent: IAgent):
         wm = agent.wm
-
-        goal = Vector2D(ServerParam.i.pitch_half_length(), wm.self().pos().y * 0.8)
+        actions = []
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        goal = Vector2D(agent.serverParams.pitch_half_length, self_position.y() * 0.8)
 
         min_dist = 100000.0
         receiver = None
 
-        for t in wm.teammates_from_ball():
-            if t.pos_count() > 5:
+        for t in Tools.TeammatesFromBall(agent):
+            if t.dist_from_ball < 1.5:
                 continue
-            if t.dist_from_ball() < 1.5:
+            if t.dist_from_ball > 20.0:
                 continue
-            if t.dist_from_ball() > 20.0:
+            if t.position.x > wm.offside_line_x:
                 continue
-            if t.pos().x > wm.offside_line_x():
+            if t.position.x < wm.ball.position.x - 3.0:
                 continue
-            if t.pos().x < wm.ball().pos().x - 3.0:
+            if abs(t.position.y) > agent.serverParams.goal_width / 2 * 0.5:
                 continue
-            if abs(t.pos().y) > ServerParam.i.goal_half_width() * 0.5:
-                continue
-
-            goal_dist = t.pos().dist(goal)
+            t_position = Vector2D(t.position.x, t.position.y)
+            goal_dist = t_position.dist(goal)
             if goal_dist > 16.0:
                 continue
 
-            dist = goal_dist * 0.4 + t.dist_from_ball() * 0.6
+            dist = goal_dist * 0.4 + t.dist_from_ball * 0.6
 
             if dist < min_dist:
                 min_dist = dist
                 receiver = t
 
         if not receiver:
-            print(f"({__file__}): (doKicToShooter) no shooter")
-            return False
-
-        max_ball_speed = wm.self().kick_rate * ServerParam.i.max_power
-
-        target_point = receiver.pos() + receiver.vel()
+            return actions
+        
+        max_ball_speed = wm.myself.kick_rate * agent.serverParams.max_power
+        receiver_pos = Vector2D(receiver.position.x, receiver.position.y)
+        receiver_vel = Vector2D(receiver.velocity.x, receiver.velocity.y)
+        target_point = receiver_pos + receiver_vel
         target_point.x += 0.6
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        target_dist = ball_position.dist(target_point)
 
-        target_dist = wm.ball().pos().dist(target_point)
-
-        ball_reach_step = math.ceil(self.calc_length_geom_series(max_ball_speed, target_dist, ServerParam.i.ball_decay()))
-        ball_speed = self.calc_first_term_geom_series(target_dist, ServerParam.i.ball_decay(), ball_reach_step)
+        ball_reach_step = math.ceil(calc_length_geom_series(max_ball_speed, target_dist, agent.serverParams.ball_decay))
+        ball_speed = calc_first_term_geom_series(target_dist, agent.serverParams.ball_decay, ball_reach_step)
 
         ball_speed = min(ball_speed, max_ball_speed)
 
-        agent.debug_client.add_message(f"IndKick:KickToShooter{ball_speed:.3f}")
-        agent.debug_client.set_target(target_point)
-        print(f"({__file__}):  pass to nearest teammate ({target_point.x:.1f} {target_point.y:.1f}) ball_speed={ball_speed:.2f} reach_step={ball_reach_step}")
+        actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), ball_speed)))
+        return actions
 
-        Body_KickOneStep(target_point, ball_speed).execute(agent)
-        agent.set_neck_action(Neck_ScanField())
+    def get_avoid_circle_point(self, agent: IAgent, point: Vector2D):
+        SP = agent.serverParams
+        wm = agent.wm
+        
+        circle_r = SP.goal_area_length + 0.5 if wm.game_mode_type == GameModeType.BackPass_ else SP.center_circle_r + 0.5
+        circle_r2 = circle_r ** 2 #TODO center circle
 
-        return True
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        if point.x() < -SP.pitch_half_length + 3.0 and abs(point.y()) < SP.goal_width / 2:
+            while point.x() < wm.ball.position.x and point.x() > -SP.pitch_half_length and ball_position.dist2(point) < circle_r2:
+                point.x = (point.x() - SP.pitch_half_length) * 0.5 - 0.01
 
-    def get_avoid_circle_point(self, wm, point):
-        SP = ServerParam.i
-
-        circle_r = SP.goal_area_length() + 0.5 if wm.game_mode.type == 'BackPass' else SP.center_circle_r() + 0.5
-        circle_r2 = circle_r ** 2
-
-        print(f"({__file__}): (get_avoid_circle_point) point=({point.x:.1f} {point.y:.1f})")
-
-        if point.x < -SP.pitch_half_length() + 3.0 and abs(point.y) < SP.goal_half_width():
-            while point.x < wm.ball(). pos().x and point.x > -SP.pitch_half_length() and wm.ball().pos().dist2(point) < circle_r2:
-                point.x = (point.x - SP.pitch_half_length()) * 0.5 - 0.01
-                print(f"({__file__}): adjust x ({point.x:.1f} {point.y:.1f})")
-
-        if point.x < -SP.pitch_half_length() + 0.5 and abs(point.y) < SP.goal_half_width() + 0.5 and \
-           wm.self().pos().x < -SP.pitch_half_length() and abs(wm.self().pos().y) < SP.goal_half_width():
-            print(f"({__file__}): (get_avoid_circle_point) ok. already in our goal")
+        if point.x() < -SP.pitch_half_length + 0.5 and abs(point.y()) < SP.goal_width / 2 + 0.5 and wm.myself.position.x < -SP.pitch_half_length and abs(wm.myself.position.y) < SP.goal_width / 2:
             return point
 
-        if wm.ball().pos().dist2(point) < circle_r2:
-            rel = point - wm.ball().pos()
+        if ball_position.dist2(point) < circle_r2:
+            rel = point - ball_position
             rel.set_length(circle_r)
-            point = wm.ball().pos() + rel
+            point = ball_position + rel
 
-            print(f"({__file__}): (get_avoid_circle_point) circle contains target. adjusted=({point.x:.2f} {point.y:.2f})")
 
-        return Bhv_SetPlay.get_avoid_circle_point(wm, point)
+        return BhvSetPlay.get_avoid_circle_point(wm, point)
 
-    def do_offense_move(self, agent):
+    def do_offense_move(self, agent: IAgent):
         wm = agent.wm
-
-        target_point = Strategy.i.get_home_position(wm, wm.self().unum())
-        target_point.x = min(wm.offside_line_x() - 1.0, target_point.x)
+        actions = []
+        target_point = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target_point.x = min(wm.offside_line_x - 1.0, target_point.x)
+        target_point_vector2d = Vector2D(target_point.x, target_point.y)
 
         nearest_dist = 1000.0
-        teammate = wm.get_teammate_nearest_to(target_point, 10, nearest_dist)
+        
+        teammate = Tools.GetTeammateNearestTo(agent, target_point)
+        teammate_pos = Vector2D(teammate.posicion.x, teammate.position.y)
         if nearest_dist < 2.5:
-            target_point += (target_point - teammate.pos()).set_length_vector(2.5)
-            target_point.x = min(wm.offside_line_x() - 1.0, target_point.x)
+            target_point_vector2d += (target_point_vector2d - teammate_pos).set_length_vector(2.5)
+            target_point_vector2d.x() = min(wm.offside_line_x - 1.0, target_point_vector2d.x())
 
-        dash_power = wm.self().get_safety_dash_power(ServerParam.i.max_dash_power())
+        dash_power = 50
+        # dash_power = wm.self().get_safety_dash_power(ServerParam.i.max_dash_power()) TODO 
 
-        dist_thr = wm.ball().dist_from_self() * 0.07
+
+        dist_thr = wm.ball.dist_from_self * 0.07
         if dist_thr < 0.5:
             dist_thr = 0.5
 
-        agent.debug_client.add_message("IndFK:OffenseMove")
-        agent.debug_client.set_target(target_point)
-        agent.debug_client.add_circle(target_point, dist_thr)
-
-        if not Body_GoToPoint(target_point, dist_thr, dash_power).execute(agent):
-            turn_point = (ServerParam.i.their_team_goal_pos() + wm.ball().pos()) * 0.5
-
-            Body_TurnToPoint(turn_point).execute(agent)
-            print(f"({__file__}):  our kick. turn to ({turn_point.x:.1f} {turn_point.y:.1f})")
-
-        if target_point.x > 36.0 and \
-           (wm.self().pos().dist(target_point) > max(wm.ball().pos().dist(target_point) * 0.2, dist_thr) + 6.0 or \
-            wm.self().stamina() < ServerParam.i.stamina_max() * 0.7):
-            if not wm.self().stamina_model().capacity_is_empty():
-                agent.debug_client.add_message("Sayw")
-                agent.add_say_message(WaitRequestMessage())
-
-        agent.set_neck_action(Neck_TurnToBallOrScan(0))
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(target_point_vector2d.x(), target_point_vector2d.y()), dist_thr, dash_power)))
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        turn_point = (RpcVector2D(agent.serverParams.pitch_half_length, 0) + ball_position) * 0.5
+        actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(turn_point.x(), turn_point.y()))))
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        if target_point.x > 36.0 and (self_position.dist(target_point) > max(ball_position.dist(target_point) * 0.2, dist_thr) + 6.0 or wm.myself.stamina < agent.serverParams.stamina_max * 0.7):
+            if not wm.myself.stamina_capacity == 0:
+                actions.append(PlayerAction(say=WaitRequestMessage()))
+        actions.append(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
+        
+        return actions
 
     def do_defense_move(self, agent: IAgent):
-        SP = ServerParam.i
+        actions = []
+        SP = agent.serverParams
         wm = agent.wm
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
+        target = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target_point = Vector2D(target.x, target.y)
+        adjusted_point = self.get_avoid_circle_point(agent, target_point)
 
-        target_point = Strategy.i.get_home_position(wm, wm.self().unum())
-        adjusted_point = self.get_avoid_circle_point(wm, target_point)
+        dash_power = wm.self().get_safety_dash_power(SP.max_dash_power()) #TODO
 
-        print(f"({__file__}): their kick adjust target to ({target_point.x:.1f} {target_point.y:.1f})->({adjusted_point.x:.1f} {adjusted_point.y:.1f})")
-
-        dash_power = wm.self().get_safety_dash_power(SP.max_dash_power())
-
-        dist_thr = wm.ball().dist_from_self() * 0.07
+        dist_thr = wm.ball.dist_from_self * 0.07
         if dist_thr < 0.5:
             dist_thr = 0.5
 
-        if adjusted_point != target_point and \
-           wm.ball().pos().dist(target_point) > 10.0 and \
-           wm.self().inertia_final_point().dist(adjusted_point) < dist_thr:
-            print(f"({__file__}): reverted to the first target point")
+        if adjusted_point != target_point and ball_position.dist(target_point) > 10.0 and Tools.inertia_final_point(agent.playerTypes[agent.wm.myself.id], self_position, self_velocity).dist(adjusted_point) < dist_thr:
             adjusted_point = target_point
 
-        collision_dist = wm.self().player_type().player_size() + SP.goal_post_radius() + 0.2
+        collision_dist = agent.playerTypes[agent.wm.myself.id].player_size + SP.goal_post_radius + 0.2 #TODO goal post radius
 
-        goal_post_l = Vector2D(-SP.pitch_half_length() + SP.goal_post_radius(),
-                               -SP.goal_half_width() - SP.goal_post_radius())
-        goal_post_r = Vector2D(-SP.pitch_half_length() + SP.goal_post_radius(),
-                               +SP.goal_half_width() + SP.goal_post_radius())
-        dist_post_l = wm.self().pos().dist(goal_post_l)
-        dist_post_r = wm.self().pos().dist(goal_post_r)
+        goal_post_l = Vector2D(-SP.pitch_half_length + SP.goal_post_radius(), '''TODO''' -SP.goal_width / 2 - SP.goal_post_radius())
+        goal_post_r = Vector2D(-SP.pitch_half_length + SP.goal_post_radius(), +SP.goal_width / 2 + SP.goal_post_radius())
+        dist_post_l = self_position.dist(goal_post_l)
+        dist_post_r = self_position.dist(goal_post_r)
 
         nearest_post = goal_post_l if dist_post_l < dist_post_r else goal_post_r
         dist_post = min(dist_post_l, dist_post_r)
 
-        if dist_post < collision_dist + wm.self().player_type().real_speed_max() + 0.5:
+        if dist_post < collision_dist + agent.playerTypes[agent.wm.myself.id].real_speed_max  + 0.5:
             post_circle = Circle2D(nearest_post, collision_dist)
-            move_line = Segment2D(wm.self().pos(), adjusted_point)
+            move_line = Segment2D(self_position, adjusted_point)
 
             if post_circle.intersection(move_line, None, None) > 0:
-                post_angle = (nearest_post - wm.self().pos()).th()
-                if nearest_post.y < wm.self().pos().y:
+                post_angle = (nearest_post - self_position).th()
+                if nearest_post.y() < self_position.y():
                     adjusted_point = nearest_post
                     adjusted_point += Vector2D.from_polar(collision_dist + 0.1, post_angle - 90.0)
                 else:
@@ -308,14 +277,7 @@ class Bhv_SetPlayIndirectFreeKick:
                     adjusted_point += Vector2D.from_polar(collision_dist + 0.1, post_angle + 90.0)
 
                 dist_thr = 0.05
-                print(f"({__file__}): adjust to avoid goal post. ({adjusted_point.x:.2f} {adjusted_point.y:.2f})")
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(adjusted_point.x(), adjusted_point.y(), dist_thr, dash_power))))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
 
-        agent.debug_client.add_message("IndFKMove")
-        agent.debug_client.set_target(adjusted_point)
-        agent.debug_client.add_circle(adjusted_point, dist_thr)
-
-        if not Body_GoToPoint(adjusted_point, dist_thr, dash_power).execute(agent):
-            Body_TurnToBall().execute(agent)
-            print(f"({__file__}):  their kick. turn to ball")
-
-        agent.set_neck_action(Neck_TurnToBall())
+        return actions

@@ -5,7 +5,7 @@ from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.segment_2d import Segment2D
 from pyrusgeom.circle_2d import Circle2D
 
-class Bhv_SetPlay:
+class BhvSetPlay:
     def __init__(self):
         pass
 

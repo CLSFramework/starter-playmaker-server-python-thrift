@@ -1,5 +1,5 @@
 from src.IAgent import IAgent
-from SetPlay.BhvSetPlay import Bhv_SetPlay
+from SetPlay.BhvSetPlay import BhvSetPlay
 from soccer.ttypes import *
 from Strategy import *
 from pyrusgeom.vector_2d import Vector2D
