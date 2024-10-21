@@ -174,7 +174,7 @@ class BhvPenaltyKick:
 
 
         return actions
-
+#---------------------------------------------------------------
     def doShoot(self, agent: IAgent):
         wm = agent.wm
         time = wm.cycle
