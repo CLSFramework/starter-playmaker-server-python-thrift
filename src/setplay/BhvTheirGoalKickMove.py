@@ -21,116 +21,106 @@ class BhvTheirGoalKickMove:
         )
 
         wm = agent.wm
-
-        if BhvTheirGoalKickMove.do_chase_ball(agent):
-            return True
+        actions = []
+        actions += BhvTheirGoalKickMove.do_chase_ball(agent)
 
         intersection = Vector2D()
-
-        if wm.ball.velocity.dist  > 0.2: # '''vel.r''' TODO
-            if not expand_their_penalty.contains(wm.ball.position) or \
-                    expand_their_penalty.intersection(Ray2D(wm.ball.position, wm.ball.velocity.angle), 
-                                                      intersection, None) != 1:
-                BhvTheirGoalKickMove.do_normal(agent)
-                return True
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_velocity = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y)
+        if ball_velocity.r()  > 0.2: # '''vel.r''' TODO
+            if not expand_their_penalty.contains(ball_position) or  expand_their_penalty.intersection(Ray2D(ball_position, wm.ball.velocity.angle), intersection, None) != 1:
+                return BhvTheirGoalKickMove.do_normal(agent)
         else:
-            if (wm.ball.position.x > agent.serverParams.their_penalty_area_line_x() + 7.0 and
+            if (wm.ball.position.x > agent.serverParams.their_penalty_area_line_x + 7.0 and
                 abs(wm.ball.position.y) < (agent.serverParams.goal_width/2.0) + 2.0):
-                BhvTheirGoalKickMove.do_normal(agent)
-                return True
+                return BhvTheirGoalKickMove.do_normal(agent)
 
-            intersection.x = agent.serverParams.their_penalty_area_line_x() - 0.76
-            intersection.y = wm.ball.position.y
-
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: penalty area intersection ({intersection.x:.1f} {intersection.y:.1f})")
+            intersection.set_x(agent.serverParams.their_penalty_area_line_x() - 0.76)
+            intersection.set_y(wm.ball.position.y)
 
         min_dist = 100.0
-        Tools.get_nearest_teammate(intersection, 10, min_dist)
+        Tools.get_nearest_teammate(agent, intersection)
         if min_dist < wm.myself.position.dist(intersection):
-            BhvTheirGoalKickMove.do_normal(agent)
-            return True
+            return BhvTheirGoalKickMove.do_normal(agent)
 
-        dash_power = agent.serverParams.max_dash_power() * 0.8
+        dash_power = agent.serverParams.max_dash_power * 0.8
 
-        if intersection.x < agent.serverParams.their_penalty_area_line_x() and \
-           wm.myself.position.x > agent.serverParams.their_penalty_area_line_x() - 0.5:
-            intersection.y = agent.serverParams.penalty_area_half_width() - 0.5
+        if intersection.x() < agent.serverParams.their_penalty_area_line_x() and wm.myself.position.x > agent.serverParams.their_penalty_area_line_x - 0.5:
+            intersection.set_y(agent.serverParams.penalty_area_half_width - 0.5)
             if wm.myself.position.y < 0.0:
-                intersection.y *= -1.0
-        elif intersection.y > agent.serverParams.penalty_area_half_width() and \
-             abs(wm.myself.position.y) < agent.serverParams.penalty_area_half_width() + 0.5:
-            intersection.y = agent.serverParams.penalty_area_half_width() + 0.5
+                intersection.set_y(intersection.y() * -1.0)
+        elif intersection.y() > agent.serverParams.penalty_area_half_width and abs(wm.myself.position.y) < agent.serverParams.penalty_area_half_width() + 0.5:
+            intersection.set_y(agent.serverParams.penalty_area_half_width + 0.5)
             if wm.myself.position.y < 0.0:
-                intersection.y *= -1.0
+                intersection.y(intersection.y() * -1.0)
 
         dist_thr = max(wm.ball.dist_from_self * 0.07, 1.0)
-
-        if not BodyGoToPoint(intersection, dist_thr, dash_power).execute(agent):
-            agent.add_action(PlayerAction(body_turn_to_ball=Body_TurnToBall(0)))
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(intersection.x(), intersection.y()), dist_thr, dash_power)))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(0)))
         
-        agent.add_action(PlayerAction(neck_scan_field=Neck_ScanField(0)))
-        return True
+        return actions
 
     @staticmethod
     def do_normal(agent: IAgent):
         wm = agent.wm
-        dash_power = Bhv_SetPlay.get_set_play_dash_power(agent)
-
-        target_point = Vector2D(Strategy.get_home_pos(wm, wm.myself.uniform_number))
+        actions = []
+        dash_power = BhvSetPlay.get_set_play_dash_power(agent)
+        targ = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target_point = Vector2D(targ.x, targ.y)
 
         # Attract to ball
-        if target_point.x > 25.0 and (target_point.y * wm.ball.position.y < 0.0 or target_point.abs_y() < 10.0):
-            y_diff = wm.ball.position.y - target_point.y
-            target_point.y += y_diff * 0.4
+        if target_point.x() > 25.0 and (target_point.y() * wm.ball.position.y < 0.0 or target_point.abs_y() < 10.0):
+            y_diff = wm.ball.position.y - target_point.y()
+            target_point.set_y(target_point.y() + y_diff * 0.4)
 
         # Check penalty area
-        if wm.myself.position.x > agent.serverParams.their_penalty_area_line_x() and \
-           target_point.abs_y() < agent.serverParams.penalty_area_half_width():
-            target_point.y = agent.serverParams.penalty_area_half_width() + 0.5
+        if wm.myself.position.x > agent.serverParams.their_penalty_area_line_x and target_point.abs_y() < agent.serverParams.penalty_area_half_width():
+            target_point.set_y(agent.serverParams.penalty_area_half_width + 0.5)
             if wm.myself.position.y < 0.0:
-                target_point.y *= -1.0
-
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: doNormal target_point({target_point.x:.1f} {target_point.y:.1f})")
+                target_point.set_y(target_point.y() * -1)
 
         dist_thr = max(wm.ball.dist_from_self * 0.07, 1.0)
-        if not BodyGoToPoint(target_point, dist_thr, dash_power).execute(agent):
-            agent.add_action(PlayerAction(body_turn_to_ball=Body_TurnToBall(0)))
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(target_point.x(), target_point.y()), dist_thr, dash_power)))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(0)))
         
-        agent.add_action(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
+        return actions
 
     @staticmethod
     def do_chase_ball(agent: IAgent) -> bool:
         wm = agent.wm
+        actions = []
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_velocity = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y)
 
-        if wm.ball.velocity.r < 0.2: #TODO
-            return False
+        if ball_velocity.r() < 0.2:
+            return []
 
         self_min = wm.intercept_table.self_reach_steps
 
         if self_min > 10:
-            return False
+            return []
 
-        get_pos = Vector2D(Tools.inertia_point(wm.ball.position,wm.ball.velocity,self_min,ServerParam.ball_decay))
+        get_pos = Vector2D(Tools.inertia_point(ball_position, ball_velocity,self_min, agent.serverParams.ball_decay))
 
-        pen_x = agent.serverParams.their_penalty_area_line_x() - 1.0
-        pen_y = agent.serverParams.penalty_area_half_width() + 1.0
+        pen_x = agent.serverParams.their_penalty_area_line_x - 1.0
+        pen_y = agent.serverParams.penalty_area_half_width + 1.0
         their_penalty = Rect2D(
             Vector2D(pen_x, -pen_y),
-            Size2D(agent.serverParams.penalty_area_length() + 1.0,
+            Size2D(agent.serverParams.penalty_area_length + 1.0,
                    (agent.serverParams.penalty_area_half_width*2) - 2.0)
         )
         if their_penalty.contains(get_pos):
-            return False
+            return []
 
-        if (get_pos.x > pen_x and
+        if (get_pos.x() > pen_x and
             wm.myself.position.x < pen_x and
             abs(wm.myself.position.y) < pen_y - 0.5):
-            return False
+            return []
 
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: doChaseBall. cycle = {self_min}  get_pos({get_pos.x:.2f} {get_pos.y:.2f})")
 
         # Can chase!!
         agent.add_log_text(LoggerLevel.TEAM,f"{__file__}:GKickGetBall")
-        agent.add_action(PlayerAction(body_intercept=Body_Intercept()))
-        agent.add_action(PlayerAction(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
-        return True
+        actions.append(PlayerAction(body_intercept=Body_Intercept()))
+        actions.append(PlayerAction()(neck_turn_to_ball_or_scan=Neck_TurnToBallOrScan(0)))
+        return actions
