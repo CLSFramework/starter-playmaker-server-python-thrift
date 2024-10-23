@@ -10,7 +10,8 @@ from pyrusgeom.size_2d import Size2D
 from pyrusgeom.rect_2d import Rect2D
 
 class BhvTheirGoalKickMove:
-
+    def __init__(self):
+        pass
     @staticmethod
     def execute(agent: IAgent) -> bool:
         expand_their_penalty = Rect2D(
