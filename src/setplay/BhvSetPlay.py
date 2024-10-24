@@ -1,12 +1,12 @@
 from src.IAgent import IAgent
 import math
 from soccer.ttypes import *
-from setplay.BhvSetPlayKickOff import *
-from setplay.BhvTheirGoalKickMove import *
-from setplay.BhvSetPlayFreeKick import *
-from setplay.BhvSetPlayGoalKick import *
-from setplay.BhvSetPlayKickIn import *
-from setplay.BhvSetPlayIndirectFreeKick import *
+from src.setplay.BhvSetPlayKickOff import *
+from src.setplay.BhvTheirGoalKickMove import *
+from src.setplay.BhvSetPlayFreeKick import *
+from src.setplay.BhvSetPlayGoalKick import *
+from src.setplay.BhvSetPlayKickIn import *
+from src.setplay.BhvSetPlayIndirectFreeKick import *
 from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.segment_2d import Segment2D
 from pyrusgeom.circle_2d import Circle2D
@@ -15,143 +15,131 @@ class BhvSetPlay:
     def __init__(self):
         pass
 
-    def execute(self, agent: IAgent):
+    def Decision(agent: IAgent):
         wm = agent.wm
-        agent.add_log_text(LoggerLevel.TEAM, __file__ + ": Bhv_SetPlay")
 
         if wm.myself.is_goalie:
             if wm.game_mode_type != GameModeType.BackPass_ and wm.game_mode_type != GameModeType.IndFreeKick_:
-                Bhv_GoalieFreeKick.execute(agent) # TODO
-            else:
-                Bhv_SetPlayIndirectFreeKick.Decision(self,agent)
-            return True
-
-        if wm.game_mode_type == GameModeType.KickOff_:
-            if wm.gameMode().side() == wm.our_side:
-                return BhvSetPlayKickOff.execute(agent)
-            else:
-                self.doBasicTheirSetPlayMove(agent)
-                return True
-
-        if wm.game_mode_type in [GameModeType.KickIn_, GameModeType.CornerKick_]:
-            if wm.gameMode().side() == wm.our_side:
-                return BhvSetPlayKickIn.execute(self,agent)
-            else:
-                self.doBasicTheirSetPlayMove(agent)
-                return True
-
-        if wm.game_mode_type == GameModeType.GoalKick_:
-            if wm.gameMode().side() == wm.our_side:
                 return BhvSetPlayGoalKick.Decision(agent)
             else:
-                return BhvTheirGoalKickMove.execute(agent)
+                return BhvSetPlayIndirectFreeKick.Decision(agent)
+            return []
+
+        if wm.game_mode_type == GameModeType.KickOff_:
+            if wm.game_mode_side == wm.our_side:
+                return BhvSetPlayKickOff.Decision(agent)
+            else:
+                return BhvSetPlay.doBasicTheirSetPlayMove(agent)
+
+
+        if wm.game_mode_type in [GameModeType.KickIn_, GameModeType.CornerKick_]:
+            if wm.game_mode_side == wm.our_side:
+                return BhvSetPlayKickIn.Decision(agent)
+            else:
+                return BhvSetPlay.doBasicTheirSetPlayMove(agent)
+
+        if wm.game_mode_type == GameModeType.GoalKick_:
+            if wm.game_mode_side == wm.our_side:
+                return BhvSetPlayGoalKick.Decision(agent)
+            else:
+                return BhvTheirGoalKickMove.Decision(agent)
 
         if wm.game_mode_type in [GameModeType.BackPass_, GameModeType.IndFreeKick_]:
-            return Bhv_SetPlayIndirectFreeKick.Decision(agent)
+            return BhvSetPlayIndirectFreeKick.Decision(agent)
 
         if wm.game_mode_type in [GameModeType.FoulCharge_, GameModeType.FoulPush_]:
-            if (wm.ball.position.x < ServerParam.our_penalty_area_line_x + 1.0 and
-                    abs(wm.ball.position.y) < ServerParam.penalty_area_half_width + 1.0):
-                return Bhv_SetPlayIndirectFreeKick.Decision(agent)
-            elif (wm.ball.position.x > ServerParam.their_penalty_area_line_x - 1.0 and
-                  abs(wm.ball.position.y) < ServerParam.penalty_area_half_width + 1.0):
-                return Bhv_SetPlayIndirectFreeKick.Decision(agent)
+            if (wm.ball.position.x < agent.serverParams.our_penalty_area_line_x + 1.0 and abs(wm.ball.position.y) < agent.serverParams.penalty_area_half_width + 1.0):
+                return BhvSetPlayIndirectFreeKick.Decision(agent)
+            elif (wm.ball.position.x > agent.serverParams.their_penalty_area_line_x - 1.0 and
+                  abs(wm.ball.position.y) < agent.serverParams.penalty_area_half_width + 1.0):
+                return BhvSetPlayIndirectFreeKick.Decision(agent)
 
         if wm.is_our_set_play:
-            agent.add_log_text(LoggerLevel.TEAM, __file__ + ": our set play")
             return BhvSetPlayFreeKick.Decision(agent)
         else:
-            self.doBasicTheirSetPlayMove(agent)
-            return True
+            BhvSetPlay.doBasicTheirSetPlayMove(agent)
 
-        return False
+        return []
 
-    def get_set_play_dash_power(self, agent: IAgent):
+    def get_set_play_dash_power(agent: IAgent):
         wm = agent.wm
         if not wm.is_our_set_play:
-            target_point = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+            target_point = Strategy.get_home_pos(agent, wm.myself.uniform_number)
             if target_point.x > wm.myself.position.x:
                 if (wm.ball.position.x < -30.0 and
                         target_point.x < wm.ball.position.x):
-                    return wm.myself.getSafetyDashPower(ServerParam.max_dash_power)
+                    return wm.myself.get_safety_dash_power
                 rate = 0.0
-                if wm.myself.stamina() > ServerParam.stamina_max * 0.8:
-                    rate = 1.5 * wm.myself.stamina / ServerParam.stamina_max
+                if wm.myself.stamina > agent.serverParams.stamina_max * 0.8:
+                    rate = 1.5 * wm.myself.stamina / agent.serverParams.stamina_max
                 else:
-                    rate = 0.9 * (wm.myself.stamina() - ServerParam.recover_dec_thr) / ServerParam.stamina_max
+                    rate = 0.9 * (wm.myself.stamina -  agent.serverParams.recover_dec_thr) /  agent.serverParams.stamina_max
                     rate = max(0.0, rate)
-                return (wm.myself.playerType().staminaIncMax() *
-                        wm.myself.recovery() *
-                        rate)
-        return wm.myself.getSafetyDashPower(ServerParam.max_dash_power)
+                return (agent.playerTypes[wm.myself.id].stamina_inc_max * wm.myself.recovery * rate)
+        return wm.myself.get_safety_dash_power
 
-    def can_go_to(agent:IAgent,self, count, wm, ball_circle: Circle2D, target_point:Vector2D):
+    def can_go_to(agent:IAgent, count, wm, ball_circle: Circle2D, target_point:Vector2D) -> bool:
         wm = agent.wm
-        move_line = Segment2D(wm.myself.position, target_point)
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        move_line = Segment2D(self_position, target_point)
         n_intersection = ball_circle.intersection(move_line, None, None)
-        agent.add_log_text(LoggerLevel.TEAM, "%d: (can_go_to) check target=(%.2f %.2f) intersection=%d" % (count, target_point.x, target_point.y, n_intersection))
-        dlog.addLine(LoggerLevel.TEAM, wm.myself.position, target_point, "#0000ff")
+
         num = str(count)
-        dlog.addMessage(LoggerLevel.TEAM, target_point, num, "#0000ff")
+
         if n_intersection == 0:
-            agent.add_log_text(LoggerLevel.TEAM, "%d: (can_go_to) ok(1)" % count)
             return True
+        
         if n_intersection == 1:
-            angle = Vector2D(target_point - wm.myself.position).th()
-            agent.add_log_text(LoggerLevel.TEAM, "%d: (can_go_to) intersection=1 angle_diff=%.1f" % (count, abs(angle - wm.ball.angle_from_self)))
+            angle = Vector2D(target_point - self_position).th()
             if abs(angle - wm.ball.angle_from_self) > 80.0:
-                agent.add_log_text(LoggerLevel.TEAM, "%d: (can_go_to) ok(2)" % count)
                 return True
         return False
 
-    def get_avoid_circle_point(self, wm, target_point,agent:IAgent):
+    def get_avoid_circle_point(wm, target_point,agent:IAgent):
         SP = ServerParam
         wm = agent.wm
-        avoid_radius = SP.centerCircleR() + wm.myself.playerType().playerSize()
-        ball_circle = Circle2D(wm.ball.position, avoid_radius)
-        agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (get_avoid_circle_point) first_target=(%.2f %.2f)" % (target_point.x, target_point.y))
-        dlog.addCircle(LoggerLevel.TEAM, wm.ball.position, avoid_radius, "#ffffff")
-        if self.can_go_to(agent,-1, wm, ball_circle, target_point):
-            agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (get_avoid_circle_point) ok, first point")
+        avoid_radius = SP.center_circle_r + agent.playerTypes[wm.myself.id].player_size
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_circle = Circle2D(ball_position, avoid_radius)
+        if BhvSetPlay.can_go_to(agent,-1, wm, ball_circle, target_point):
             return target_point
-        target_angle = Vector2D(target_point - wm.myself.position).th()
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        target_angle = Vector2D(target_point - self_position).th()
         ball_target_angle = Vector2D(target_point - wm.ball.position).th()
-        ball_is_left = wm.ball.angle_from_self.isLeftOf(target_angle)
+        ball_ang = AngleDeg(wm.ball.angle_from_self)
+        ball_is_left = ball_ang.is_left_of(target_angle)
         ANGLE_DIVS = 6
         subtargets = []
         angle_step = 1 if ball_is_left else -1
         count = 0
         a = angle_step
         for i in range(1, ANGLE_DIVS):
-            wm =agent.wm
             angle = ball_target_angle + (180.0 / ANGLE_DIVS) * a
             new_target = Vector2D(wm.ball.position + Vector2D.from_polar(avoid_radius + 1.0, angle))
-            agent.add_log_text(LoggerLevel.TEAM, "%d: a=%d angle=%.1f (%.2f %.2f)" % (count, a, angle, new_target.x, new_target.y))
-            if abs(new_target.x) > SP.pitch_half_length + SP.pitchMargin() - 1.0 or abs(new_target.y) > SP.pitch_half_width + SP.pitchMargin() - 1.0:
-                agent.add_log_text(LoggerLevel.TEAM, "%d: out of field" % count)
+
+            if abs(new_target.x()) > SP.pitch_half_length + SP.pith_margin - 1.0 or abs(new_target.y) > SP.pitch_half_width + SP.pitchMargin() - 1.0: #TODO pith_margin
                 break
-            if self.can_go_to(count, wm, ball_circle, new_target, agent):
+            if BhvSetPlay.can_go_to(count, wm, ball_circle, new_target, agent):
                 return new_target
             a += angle_step
             count += 1
         a = -angle_step
         for i in range(1, ANGLE_DIVS * 2):
             angle = ball_target_angle + (180.0 / ANGLE_DIVS) * a
-            new_target = Vector2D(wm.ball.position + Vector2D.from_polar(avoid_radius + 1.0, angle))
-            agent.add_log_text(LoggerLevel.TEAM, "%d: a=%d angle=%.1f (%.2f %.2f)" % (count, a, angle, new_target.x, new_target.y))
-            if abs(new_target.x) > SP.pitch_half_length + SP.pitchMargin - 1.0 or abs(new_target.y) > SP.pitch_half_width + SP.pitchMargin() - 1.0:
-                agent.add_log_text(LoggerLevel.TEAM, "%d: out of field" % count)
+            new_target = Vector2D(ball_position + Vector2D.from_polar(avoid_radius + 1.0, angle))
+
+            if abs(new_target.x()) > SP.pitch_half_length + SP.pitchMargin - 1.0 or abs(new_target.y()) > SP.pitch_half_width + SP.pitchMargin() - 1.0: #TODO
                 break
-            if self.can_go_to(count, wm, ball_circle, new_target, agent):
+            if BhvSetPlay.can_go_to(count, wm, ball_circle, new_target, agent):
                 return new_target
             a -= angle_step
             count += 1
         return target_point
 
-    def is_kicker(self, agent: IAgent):
+    def is_kicker(agent: IAgent):
         wm = agent.wm
-        if wm.game_mode_type == GameModeType.GoalieCatch_ and wm.gameMode().side() == wm.our_side and not wm.myself.is_goalie:
-            agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) goalie free kick")
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        if wm.game_mode_type == GameModeType.GoalieCatch_ and wm.game_mode_side == wm.our_side and not wm.myself.is_goalie:
             return False
         kicker_unum = 0
         min_dist2 = float('inf')
@@ -160,17 +148,17 @@ class BhvSetPlay:
         for unum in range(1, 12):
             if unum == wm.our_goalie_uniform_number:
                 continue
-            home_pos = Vector2D(Strategy.get_home_pos(wm, unum))
+            home_pos = Vector2D(Strategy.get_home_pos(agent, unum).x, Strategy.get_home_pos(agent, unum).y)
             if not home_pos.is_valid:
                 continue
-            d2 = home_pos.dist2(wm.ball.position)
+            d2 = home_pos.dist2(ball_position)
             if d2 < second_min_dist2:
                 second_kicker_unum = unum
                 second_min_dist2 = d2
                 if second_min_dist2 < min_dist2:
                     second_kicker_unum, kicker_unum = kicker_unum, second_kicker_unum
                     second_min_dist2, min_dist2 = min_dist2, second_min_dist2
-        agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) kicker_unum=%d second_kicker_unum=%d" % (kicker_unum, second_kicker_unum))
+
         kicker = None
         second_kicker = None
         if kicker_unum != 0:
@@ -178,28 +166,23 @@ class BhvSetPlay:
         if second_kicker_unum != 0:
             second_kicker = wm.teammates[second_kicker_unum]
         if not kicker:
-            if not Tools.TeammatesFromBall(agent) == Empty and wm.teammatesFromBall()[0].distFromBall() < wm.ball.dist_from_self * 0.9:
-                agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) first kicker")
+            if Tools.TeammatesFromBall(agent) and Tools.TeammatesFromBall(agent)[0].dist_from_ball < wm.ball.dist_from_self * 0.9:
                 return False
-            agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) self(1)")
+
             return True
         if kicker and second_kicker and (kicker.uniform_number == wm.myself.uniform_number or second_kicker.uniform_number == wm.myself.uniform_number):
+            teammates_from_ball = Tools.TeammatesFromBall(agent)
             if math.sqrt(min_dist2) < math.sqrt(second_min_dist2) * 0.95:
-                agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) kicker->unum=%d  (1)" % kicker.uniform_number)
                 return kicker.uniform_number == wm.myself.uniform_number
             elif kicker.dist_from_ball < second_kicker.dist_from_ball * 0.95:
-                agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) kicker->unum=%d  (2)" % kicker.uniform_number)
                 return kicker.uniform_number == wm.myself.uniform_number
-            elif second_kicker.distFromBall() < kicker.distFromBall() * 0.95:
-                agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) kicker->unum=%d  (3)" % kicker.uniform_number)
+            elif second_kicker.dist_from_ball < kicker.dist_from_ball * 0.95:
                 return second_kicker.uniform_number == wm.myself.uniform_number
-            elif not Tools.TeammatesFromBall(agent) == Empty and wm.teammatesFromBall()[0].distFromBall() < wm.myself.distFromBall() * 0.95:
-                agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) other kicker")
+            
+            elif teammates_from_ball and teammates_from_ball[0].dist_from_ball < wm.myself.dist_from_ball * 0.95:
                 return False
             else:
-                agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) self(2)")
                 return True
-        agent.add_log_text(LoggerLevel.TEAM, __file__ + ": (is_kicker) kicker->unum=%d" % kicker.uniform_number)
         return kicker.uniform_number == wm.myself.uniform_number
 
     def is_delaying_tactics_situation(self, agent: IAgent):

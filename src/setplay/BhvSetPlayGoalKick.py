@@ -7,49 +7,46 @@ from src.Tools import Tools
 from src.BhvBasicOffensiveKick import BhvBasicOffensiveKick
 from src.Pass import Pass
 from src.Strategy import Strategy
+from src.ClearBall import ClearBall
 
 class BhvSetPlayGoalKick:
     def __init__():
         pass
     
-    def Decision(self, agent:IAgent):
+    def Decision(agent:IAgent):
         
         if BhvSetPlay.is_kicker(agent):
-            return self.do_kick(agent)
+            return BhvSetPlayGoalKick.do_kick(agent)
         else:
-            return self.do_move(agent)
+            return BhvSetPlayGoalKick.do_move(agent)
 
-    def do_kick(self, agent):
+    def do_kick(agent: IAgent):
         actions = []
-        if self.do_second_kick(agent):
+        if BhvSetPlayGoalKick.do_second_kick(agent):
             return
         
-        if self.go_to_placed_ball(agent):
+        if BhvSetPlayGoalKick.go_to_placed_ball(agent):
             print(f"{__file__}: (doKick) go to ball")
             return
         
-        if self.do_kick_wait(agent):
+        if BhvSetPlayGoalKick.do_kick_wait(agent):
             return
         
-        if self.do_pass(agent):
+        if BhvSetPlayGoalKick.do_pass(agent):
             return
         
-        if self.do_kick_to_far_side(agent):
+        if BhvSetPlayGoalKick.do_kick_to_far_side(agent):
             return
-        
-        real_set_play_count = agent.wm.time().cycle() - agent.wm.last_set_play_start_time().cycle()
-        if real_set_play_count <= agent.server_param().drop_ball_time() - 10:
-            agent.debug_client().add_message(f"GoalKick:FinalWait{real_set_play_count}")
-            agent.body_turn_to_ball()
-            agent.set_neck_action(NeckScanField())
-            return
-        
-        agent.debug_client().add_message("GoalKick:Clear")
+        wm = agent.wm
+        real_set_play_count = wm.cycle - agent.wm.last_set_play_start_time
+        if real_set_play_count <= agent.serverParams.drop_ball_time - 10:
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            return actions
+        actions += ClearBall.Decision(agent)
         print(f"{__file__}: clear ball")
-        agent.body_clear_ball()
-        agent.set_neck_action(NeckScanField())
+        return actions
 
-    def do_second_kick(self, agent:IAgent):
+    def do_second_kick(agent:IAgent):
         wm = agent.wm
         actions = []
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
@@ -58,10 +55,10 @@ class BhvSetPlayGoalKick:
             return []
         
         if wm.myself.is_kickable:
-            actions += self.do_pass(agent)
+            actions += BhvSetPlayGoalKick.do_pass(agent)
             actions += ClearBall.Decision(agent)
         
-        actions += self.do_intercept(agent)
+        actions += BhvSetPlayGoalKick.do_intercept(agent)
         
         ball_final = Tools.BallInertiaFinalPoint(ball_position, ball_velocity, agent.serverParams.ball_decay)
         
@@ -99,14 +96,14 @@ class BhvSetPlayGoalKick:
             
         return actions
 
-    def do_pass(self, agent:IAgent):
+    def do_pass(agent:IAgent):
         return Pass.Decision(agent)
 
     def do_intercept(self, agent:IAgent):
         wm = agent.wm
         actions = []
         
-        if wm.ball.position.x < -agent.serverParams.pitch_half_length + agent.serverParams.goal_area_length + 1.0 and abs(wm.ball.position.y) < agent.serverParams.goal_area_width * 0.5 + 1.0: #TODO
+        if wm.ball.position.x < -agent.serverParams.pitch_half_length + agent.serverParams.goal_area_length + 1.0 and abs(wm.ball.position.y) < agent.serverParams.goal_area_width * 0.5 + 1.0:
             return []
         
         if wm.myself.is_kickable:
@@ -125,9 +122,9 @@ class BhvSetPlayGoalKick:
         
         return actions
 
-    def do_move(self, agent:IAgent):
+    def do_move(agent:IAgent):
         actions = []
-        actions += self.do_intercept(agent)
+        actions += BhvSetPlayGoalKick.do_intercept(agent)
         
         wm = agent.wm
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
@@ -169,7 +166,7 @@ class BhvSetPlayGoalKick:
 
         return actions
 
-    def do_kick_to_far_side(self, agent:IAgent):
+    def do_kick_to_far_side(agent:IAgent):
         wm = agent.wm
         actions = []
         target_point = Vector2D(agent.serverParams.our_penalty_area_line_x - 5.0, agent.serverParams.penalty_area_half_width)

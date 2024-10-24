@@ -16,36 +16,35 @@ from pyrusgeom.soccer_math import *
 from pyrusgeom.geom_2d import *
 import math
 
-class Bhv_SetPlayIndirectFreeKick:
+class BhvSetPlayIndirectFreeKick:
     def __init__(self):
         pass
 
-    def Decision(self, agent: IAgent):
+    def Decision(agent: IAgent):
         wm = agent.wm
-        #TODO side
-        our_kick = (wm.game_mode_type == GameModeType.BackPass_ and wm.gamemode.side == Side) or (wm.game_mode_type == GameModeType.IndFreeKick_ and wm.game_mode.side == wm.our_side) or (wm.game_mode_type == GameModeType.FoulCharge_ and wm.game_mode.side == wm.their_side) or (wm.game_mode_type == GameModeType.FoulPush_ and  == wm.their_side ) #TODO side
+        our_kick = (wm.game_mode_type == GameModeType.BackPass_ and wm.game_mode_side != wm.our_side) or (wm.game_mode_type == GameModeType.IndFreeKick_ and wm.game_mode_side == wm.our_side) or (wm.game_mode_type == GameModeType.FoulCharge_ and wm.game_mode_side != wm.our_side) or (wm.game_mode_type == GameModeType.FoulPush_ and  wm.game_mode_side != wm.our_side ) 
         our_kick = True
 
         if our_kick:
             if BhvSetPlay.is_kicker(agent):
-                return self.do_kicker(agent)
+                return BhvSetPlayIndirectFreeKick.do_kicker(agent)
             else:
-                return self.do_offense_move(agent)
+                return BhvSetPlayIndirectFreeKick.do_offense_move(agent)
         else:
-            return self.do_defense_move(agent)
+            return BhvSetPlayIndirectFreeKick.do_defense_move(agent)
 
         return []
 
-    def do_kicker(self, agent: IAgent):
+    def do_kicker(agent: IAgent):
         # go to ball
         actions = []
         actions += BhvGoToPlacedBall.Decision(agent=agent)
 
         # wait
-        actions += self.do_kick_wait(agent)
+        actions += BhvSetPlayIndirectFreeKick.do_kick_wait(agent)
 
         # kick to the teammate exist at the front of their goal
-        actions += self.do_kick_to_shooter(agent)
+        actions += BhvSetPlayIndirectFreeKick.do_kick_to_shooter(agent)
 
         wm = agent.wm
         max_kick_speed = wm.self.kick_rate * agent.serverParams.max_power
@@ -180,7 +179,7 @@ class Bhv_SetPlayIndirectFreeKick:
         wm = agent.wm
         
         circle_r = SP.goal_area_length + 0.5 if wm.game_mode_type == GameModeType.BackPass_ else SP.center_circle_r + 0.5
-        circle_r2 = circle_r ** 2 #TODO center circle
+        circle_r2 = circle_r ** 2
 
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         if point.x() < -SP.pitch_half_length + 3.0 and abs(point.y()) < SP.goal_width / 2:
@@ -214,7 +213,7 @@ class Bhv_SetPlayIndirectFreeKick:
             target_point_vector2d.x() = min(wm.offside_line_x - 1.0, target_point_vector2d.x())
 
         dash_power = 50
-        # dash_power = wm.self().get_safety_dash_power(ServerParam.i.max_dash_power()) TODO 
+        dash_power = wm.myself.get_safety_dash_power()
 
 
         dist_thr = wm.ball.dist_from_self * 0.07
@@ -242,9 +241,9 @@ class Bhv_SetPlayIndirectFreeKick:
         self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
         target = Strategy.get_home_pos(wm, wm.myself.uniform_number)
         target_point = Vector2D(target.x, target.y)
-        adjusted_point = self.get_avoid_circle_point(agent, target_point)
+        adjusted_point = BhvSetPlayIndirectFreeKick.get_avoid_circle_point(agent, target_point)
 
-        dash_power = wm.self().get_safety_dash_power(SP.max_dash_power()) #TODO
+        dash_power = wm.myself.get_safety_dash_power
 
         dist_thr = wm.ball.dist_from_self * 0.07
         if dist_thr < 0.5:
@@ -253,10 +252,10 @@ class Bhv_SetPlayIndirectFreeKick:
         if adjusted_point != target_point and ball_position.dist(target_point) > 10.0 and Tools.inertia_final_point(agent.playerTypes[agent.wm.myself.id], self_position, self_velocity).dist(adjusted_point) < dist_thr:
             adjusted_point = target_point
 
-        collision_dist = agent.playerTypes[agent.wm.myself.id].player_size + SP.goal_post_radius + 0.2 #TODO goal post radius
+        collision_dist = agent.playerTypes[agent.wm.myself.id].player_size + SP.goal_post_radius + 0.2
 
-        goal_post_l = Vector2D(-SP.pitch_half_length + SP.goal_post_radius(), '''TODO''' -SP.goal_width / 2 - SP.goal_post_radius())
-        goal_post_r = Vector2D(-SP.pitch_half_length + SP.goal_post_radius(), +SP.goal_width / 2 + SP.goal_post_radius())
+        goal_post_l = Vector2D(-SP.pitch_half_length + SP.goal_post_radius, -SP.goal_width / 2 - SP.goal_post_radius)
+        goal_post_r = Vector2D(-SP.pitch_half_length + SP.goal_post_radius, +SP.goal_width / 2 + SP.goal_post_radius)
         dist_post_l = self_position.dist(goal_post_l)
         dist_post_r = self_position.dist(goal_post_r)
 

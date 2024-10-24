@@ -13,7 +13,7 @@ class BhvTheirGoalKickMove:
     def __init__(self):
         pass
     @staticmethod
-    def execute(agent: IAgent) -> bool:
+    def Decision(agent: IAgent) -> bool:
         expand_their_penalty = Rect2D(
             Vector2D(agent.serverParams.their_penalty_area_line_x - 0.75,
                       -agent.serverParams.penalty_area_half_width - 0.75),

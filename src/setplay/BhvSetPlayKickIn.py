@@ -11,7 +11,7 @@ from src.setplay.BhvSetPlay import BhvSetPlay
 from src.Strategy import Strategy
 class BhvSetPlayKickIn:
 
-    def execute(agent: IAgent) -> bool:
+    def Decision(agent: IAgent) -> bool:
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: Bhv_SetPlayKickIn")
 
         if BhvSetPlayKickIn.is_kicker(agent):
