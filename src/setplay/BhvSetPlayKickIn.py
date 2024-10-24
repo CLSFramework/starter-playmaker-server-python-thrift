@@ -2,191 +2,174 @@ import math
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-
+from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+from src.Pass import Pass
+from src.Tools import Tools
+import math
+from pyrusgeom.soccer_math import *
+from src.setplay.BhvSetPlay import BhvSetPlay
+from src.Strategy import Strategy
 class BhvSetPlayKickIn:
 
-    def execute(self, agent: IAgent) -> bool:
+    def execute(agent: IAgent) -> bool:
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: Bhv_SetPlayKickIn")
 
-        if self.is_kicker(agent):
-            self.do_kick(agent)
+        if BhvSetPlayKickIn.is_kicker(agent):
+            return BhvSetPlayKickIn.do_kick(agent)
         else:
-            self.do_move(agent)
+            return BhvSetPlayKickIn.do_move(agent)
 
-        return True
+        return []
 
-    def do_kick(self, agent: IAgent):
+    def do_kick(agent: IAgent):
         wm = agent.wm
-
+        actions = []
         # Go to the kick position
-        ball_place_angle = -90.0 if wm.ball().pos().y > 0.0 else 90.0
-        if self.go_to_placed_ball(ball_place_angle).execute(agent):
-            return
+        ball_place_angle = -90.0 if wm.ball.position.y > 0.0 else 90.0
+        actions += BhvGoToPlacedBall.Decision(ball_place_angle)
 
         # Wait
-        if self.do_kick_wait(agent):
-            return
+        if BhvSetPlayKickIn.do_kick_wait(agent):
+            return []
 
         # Kick
-        max_ball_speed = wm.self().kickRate() * ServerParam.i().maxPower()
+        max_ball_speed = wm.myself.kick_rate * agent.serverParams.max_power
 
         # Pass
-        self.basic_offensive_kick(agent, 1)
+        actions += Pass.Decision(agent)
 
         # Kick to the nearest teammate
-        receiver = wm.getTeammateNearestToBall(10)
-        if receiver and receiver.distFromBall() < 10.0 and \
-                abs(receiver.pos().x) < ServerParam.i().pitchHalfLength() and \
-                abs(receiver.pos().y) < ServerParam.i().pitchHalfWidth():
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        receiver: Player = Tools.GetTeammateNearestTo(ball_position)
+        if receiver and receiver.dist_from_ball < 10.0 and abs(receiver.position.x) < agent.serverParams.pitch_half_length and abs(receiver.position.y) < agent.serverParams.pitch_half_width:
 
-            target_point = receiver.inertiaFinalPoint()
-            target_point.x += 0.5
-
-            ball_move_dist = wm.ball().pos().dist(target_point)
-            ball_reach_step = math.ceil(self.calc_length_geom_series(max_ball_speed, ball_move_dist, ServerParam.i().ballDecay()))
+            target_point = Vector2D(receiver.inertia_final_point.x, receiver.inertia_final_point.y)
+            target_point.set_x(target_point.x() + 0.5)
+            ball_move_dist = ball_position.dist(target_point)
+            ball_reach_step = math.ceil(calc_length_geom_series(max_ball_speed, ball_move_dist, agent.serverParams.ball_decay))
             ball_speed = 0.0
 
             if ball_reach_step > 3:
-                ball_speed = self.calc_first_term_geom_series(ball_move_dist, ServerParam.i().ballDecay(), ball_reach_step)
+                ball_speed = calc_first_term_geom_series(ball_move_dist, agent.serverParams.ball_decay, ball_reach_step)
             else:
-                ball_speed = self.calc_first_term_geom_series_last(1.4, ball_move_dist, ServerParam.i().ballDecay())
-                ball_reach_step = math.ceil(self.calc_length_geom_series(ball_speed, ball_move_dist, ServerParam.i().ballDecay()))
+                ball_speed = Tools.calc_first_term_geom_series_last(1.4, ball_move_dist, agent.serverParams.ball_decay)
+                ball_reach_step = math.ceil(calc_length_geom_series(ball_speed, ball_move_dist, agent.serverParams.ball_decay))
 
             ball_speed = min(ball_speed, max_ball_speed)
-
-            agent.debugClient().addMessage(f"KickIn:ForcePass{ball_speed:.3f}")
-            agent.debugClient().setTarget(target_point)
-
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: kick to nearest teammate ({target_point.x:.1f} {target_point.y:.1f}) speed={ball_speed:.2f}")
-            self.body_kick_one_step(target_point, ball_speed).execute(agent)
-            agent.setNeckAction(NeckScanField())
-            return
+            actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), ball_speed)))
+            return actions
 
         # Clear
         # Turn to ball
-        if abs(wm.ball().angleFromSelf() - wm.self().body()) > 1.5:
-            agent.debugClient().addMessage("KickIn:Advance:TurnToBall")
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: clear. turn to ball")
-            self.body_turn_to_ball().execute(agent)
-            agent.setNeckAction(NeckScanField())
-            return
+        if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 1.5:
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            return actions
 
         # Advance ball
-        if wm.self().pos().x < 20.0:
-            agent.debugClient().addMessage("KickIn:Advance")
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: advance(1)")
-            self.body_advance_ball().execute(agent)
-            agent.setNeckAction(NeckScanField())
-            return
+        if wm.myself.position.x < 20.0:
+            actions.append(PlayerAction(body_advance_ball=Body_AdvanceBall()))
+            return actions
 
         # Kick to the opponent side corner
-        agent.debugClient().addMessage("KickIn:ForceAdvance")
-        target_point = Vector2D(ServerParam.i().pitchHalfLength() - 2.0,
-                                (ServerParam.i().pitchHalfWidth() - 5.0) * (1.0 - (wm.self().pos().x / ServerParam.i().pitchHalfLength())))
 
-        if wm.self().pos().y < 0.0:
-            target_point.y *= -1.0
+        target_point = Vector2D(agent.serverParams.pitch_half_length - 2.0,
+                                (agent.serverParams.pitch_half_width - 5.0) * (1.0 - (wm.myself.position.x / agent.serverParams.pitch_half_length)))
+
+        if wm.myself.position.y < 0.0:
+            target_point.set_y(target_point.y() * -1.0)
         
         # Enforce one step kick
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: advance(2) to ({target_point.x:.1f}, {target_point.y:.1f})")
-        self.body_kick_one_step(target_point, ServerParam.i().ballSpeedMax()).execute(agent)
-        agent.setNeckAction(NeckScanField())
+        actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), agent.serverParams.ball_speed_max)))
+        return actions
+    
 
-    def do_kick_wait(self, agent: IAgent) -> bool:
+    def do_kick_wait(agent: IAgent) -> bool:
         wm = agent.wm
 
-        real_set_play_count = wm.time().cycle() - wm.lastSetPlayStartTime().cycle()
+        real_set_play_count = wm.cycle - wm.last_set_play_start_time
+        actions = []
+        if real_set_play_count >= agent.serverParams.drop_ball_time - 5:
+            return []
 
-        if real_set_play_count >= ServerParam.i().dropBallTime() - 5:
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKickWait) real set play count = {real_set_play_count} > drop_time-10, force kick mode")
-            return False
+        if BhvSetPlay.is_delaying_tactics_situation(agent):
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(0, 0))))
+            return actions
 
-        if self.is_delaying_tactics_situation(agent):
-            agent.debugClient().addMessage("KickIn:Delaying")
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKickWait) delaying")
-            self.body_turn_to_point(Vector2D(0.0, 0.0)).execute(agent)
-            agent.setNeckAction(NeckScanField())
-            return True
+        if not Tools.TeammatesFromBall(agent):
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(0, 0))))
+            return actions
 
-        if wm.teammatesFromBall().empty():
-            agent.debugClient().addMessage("KickIn:NoTeammate")
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKickWait) no teammate")
-            self.body_turn_to_point(Vector2D(0.0, 0.0)).execute(agent)
-            agent.setNeckAction(NeckScanField())
-            return True
+        if wm.set_play_count <= 3:
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            return actions
 
-        if wm.getSetPlayCount() <= 3:
-            agent.debugClient().addMessage(f"KickIn:Wait{wm.getSetPlayCount()}")
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKickWait) wait teammates")
-            self.body_turn_to_ball().execute(agent)
-            agent.setNeckAction(NeckScanField())
-            return True
+        if wm.set_play_count >= 15 and wm.see_time == wm.cycle and wm.myself.stamina > agent.serverParams.stamina_max * 0.6:
+            return []
 
-        if wm.getSetPlayCount() >= 15 and wm.seeTime() == wm.time() and wm.self().stamina() > ServerParam.i().staminaMax() * 0.6:
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKickWait) set play count = {wm.getSetPlayCount()}, force kick mode")
-            return False
+        if wm.see_time != wm.cycle or wm.myself.stamina < agent.serverParams.stamina_max * 0.9:
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            return actions
 
-        if wm.seeTime() != wm.time() or wm.self().stamina() < ServerParam.i().staminaMax() * 0.9:
-            self.body_turn_to_ball().execute(agent)
-            agent.setNeckAction(NeckScanField())
-            agent.debugClient().addMessage(f"KickIn:Wait{wm.getSetPlayCount()}")
-            agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKickWait) no see or recover")
-            return True
-
-        return False
+        return actions
 
     def do_move(self, agent: IAgent):
         wm = agent.wm
-
-        target_point = Strategy.i().getHomePosition(wm, wm.self().unum())
-
+        actions = []
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        target = Strategy.get_home_pos(agent, wm.myself.uniform_number)
+        target_point = Vector2D(target.x, target.y)
         avoid_opponent = False
-        if wm.self().stamina() > ServerParam.i().staminaMax() * 0.9:
-            nearest_opp = wm.getOpponentNearestToSelf(5)
-            if nearest_opp and nearest_opp.pos().dist(target_point) < 3.0:
-                add_vec = wm.ball().pos() - target_point
-                add_vec.setLength(3.0)
+        
+        if wm.myself.stamina > agent.serverParams.stamina_max * 0.9:
+            nearest_opp = Tools.GetOpponentNearestToSelf(agent)
+            nearest_opp_pos = Vector2D(nearest_opp.position.x, nearest_opp.position.y)
+            
+            if nearest_opp and nearest_opp_pos.dist(target_point) < 3.0:
+                add_vec = ball_position - target_point
+                add_vec.set_length(3.0)
 
-                time_val = wm.time().cycle() % 60
+                time_val = wm.cycle % 60
                 if time_val < 20:
                     pass
                 elif time_val < 40:
-                    target_point += add_vec.rotatedVector(90.0)
+                    target_point += add_vec.rotated_vector(90.0)
                 else:
-                    target_point += add_vec.rotatedVector(-90.0)
+                    target_point += add_vec.rotated_vector(-90.0)
 
-                target_point.x = min(max(-ServerParam.i().pitchHalfLength(), target_point.x), ServerParam.i().pitchHalfLength())
-                target_point.y = min(max(-ServerParam.i().pitchHalfWidth(), target_point.y), ServerParam.i().pitchHalfWidth())
+                target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length()))
+                target_point.set_y (min(max(-agent.serverParams.pitch_half_width, target_point.y), agent.serverParams.pitch_half_width))
                 avoid_opponent = True
 
-        dash_power = self.get_set_play_dash_power(agent)
-        dist_thr = wm.ball().distFromSelf() * 0.07
+        dash_power = BhvSetPlay.get_set_play_dash_power(agent)
+        dist_thr = wm.ball.dist_from_self * 0.07
         dist_thr = max(dist_thr, 1.0)
-
-        agent.debugClient().addMessage("KickInMove")
-        agent.debugClient().setTarget(target_point)
-
-        kicker_ball_dist = (wm.teammatesFromBall().front().distFromBall() if wm.teammatesFromBall() else 1000.0)
-
-        if not self.body_go_to_point(target_point, dist_thr, dash_power).execute(agent):
+        tm = Tools.TeammatesFromBall(agent)
+        if tm:
+            kicker_ball_dist = tm[0].dist_from_ball
+        else:
+            1000
+        
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(target_point.x(), target_point.y()), dist_thr, dash_power)))
             # Already there
-            if kicker_ball_dist > 1.0:
-                agent.doTurn(120.0)
-            else:
-                self.body_turn_to_ball().execute(agent)
+        if kicker_ball_dist > 1.0:
+            actions.append(PlayerAction(turn=Turn(120)))
+        else:
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
+        my_inertia = Tools.inertia_final_point(agent.PlayerTypes[wm.myself.id], self_position, self_velocity)
+        wait_dist_buf = (10.0 if avoid_opponent else ball_position.dist(target_point) * 0.2 + 6.0)
 
-        my_inertia = wm.self().inertiaFinalPoint()
-        wait_dist_buf = (10.0 if avoid_opponent else wm.ball().pos().dist(target_point) * 0.2 + 6.0)
+        if my_inertia.dist(target_point) > wait_dist_buf or wm.myself.stamina < agent.serverParams.stamina_max * 0.7:
+            if not wm.myself.stamina_capacity == 0:
+                actions.append(PlayerAction(say=WaitRequestMessage()))
 
-        if my_inertia.dist(target_point) > wait_dist_buf or wm.self().stamina() < ServerParam.i().staminaMax() * 0.7:
-            if not wm.self().staminaModel().capacityIsEmpty():
-                agent.debugClient().addMessage("Sayw")
-                agent.addSayMessage(WaitRequestMessage())
-
-        if kicker_ball_dist > 3.0:
+        ''''if kicker_ball_dist > 3.0:
             agent.setViewAction(ViewWide())
             agent.setNeckAction(NeckScanField())
         elif wm.ball().distFromSelf() > 10.0 or kicker_ball_dist > 1.0:
             agent.setNeckAction(NeckTurnToBallOrScan(0))
         else:
-            agent.setNeckAction(NeckTurnToBall())
+            agent.setNeckAction(NeckTurnToBall())''' #TODO
+            
+        return actions
