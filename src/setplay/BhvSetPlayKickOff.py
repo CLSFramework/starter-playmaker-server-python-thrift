@@ -1,6 +1,6 @@
 from src.IAgent import IAgent
-from SetPlay.BhvGoToPlacedBall import Bhv_GoToPlacedBall
-from SetPlay.BhvSetPlay import BhvSetPlay
+from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+from src.setplay.BhvSetPlay import BhvSetPlay
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
 from src.Tools import Tools
@@ -8,8 +8,10 @@ from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from src.Strategy import Strategy
 
 class BhvSetPlayKickOff:
+    def __init__(self):
+        pass
     
-    def execute(agent: IAgent):
+    def Decision(agent: IAgent):
         wm = agent.wm
         teammates = Tools.TeammatesFromBall(agent)
 
@@ -23,7 +25,7 @@ class BhvSetPlayKickOff:
     def do_kick(agent: IAgent):
         # Go to the ball position
         actions = []
-        actions += Bhv_GoToPlacedBall(0.0).execute(agent)
+        actions += BhvGoToPlacedBall(0.0).Decision(agent)
         
         # Wait
         actions += BhvSetPlayKickOff.do_kick_wait(agent)
@@ -48,12 +50,12 @@ class BhvSetPlayKickOff:
                 # Too far
                 target_point.assign(agent.serverParams.pitch_half_length, (-1 + 2 * (wm.cycle % 2)) * 0.8 * agent.serverParams.goal_width)
             else:
-                target_point = teammate.inertia_final_point() #TODO
+                target_point = teammate.inertia_final_point
                 ball_speed = min(max_ball_speed,
                                  Tools.calc_first_term_geom_series_last(1.8, dist, agent.serverParams.ball_decay))
 
-        ball_vel = Vector2D.polar2vector(ball_speed, Vector2D(target_point - wm.ball.position).th())
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_vel = Vector2D.polar2vector(ball_speed, Vector2D(target_point - ball_position).th())
         ball_next = ball_position + ball_vel
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         while self_position.dist(ball_next) < agent.playerTypes[agent.wm.myself.id].kickable_area + 0.2:
@@ -78,25 +80,29 @@ class BhvSetPlayKickOff:
 
         if BhvSetPlay.is_delaying_tactics_situation(agent):
             actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(180)))
+            return actions
             
         if abs(wm.myself.body_direction) < 175.0:
             actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(180)))
+            return actions
 
         if not Tools.TeammatesFromBall(agent):
             actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(180)))
+            return actions
 
         if len(Tools.TeammatesFromSelf(agent)) < 9:
             actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(180)))
+            return actions
 
         if wm.see_time != wm.cycle or wm.myself.stamina < agent.serverParams.stamina_max * 0.9:
             actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(180)))
-
-        actions
+            return actions
+        return actions
 
     def do_move(agent: IAgent):
         wm = agent.wm
         actions = []
-        target = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target.x, target.y)
         target_point.x = min(-0.5, target_point.x())
 

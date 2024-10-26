@@ -16,21 +16,20 @@ class BhvSetPlayFreeKick:
     def __init__(self):
         pass
     
-    def Decision(self, agent: IAgent):
+    def Decision(agent: IAgent):
         
         if BhvSetPlay.is_kicker(agent):
-            return self.doKick(agent)
+            return BhvSetPlayFreeKick.doKick(agent)
         else:
-            return self.doMove(agent)
+            return BhvSetPlayFreeKick.doMove(agent)
 
-    def doKick(self, agent:IAgent):
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: (doKick)")
+    def doKick(agent:IAgent):
         actions = []
         # go to the ball position
         actions += BhvGoToPlacedBall(0.0).Decision(agent)
 
 
-        actions += self.doKickWait(agent)
+        actions += BhvSetPlayFreeKick.doKickWait(agent)
 
         # kick
         wm = agent.wm
@@ -108,7 +107,7 @@ class BhvSetPlayFreeKick:
     def do_move(agent:IAgent):
         wm = agent.wm
         actions = []
-        target_point_rpc = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target_point_rpc = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target_point_rpc.x, target_point_rpc.y)
         ball_positions = Vector2D(wm.ball.position.x, wm.ball.position.y)
         self_positions = Vector2D(wm.myself.position.x, wm.myself.position.y)

@@ -33,7 +33,7 @@ class BhvBasicMove:
             pass
             # Do defensive move like mark or block
         
-        home_pos = Strategy.get_home_pos(agent)
+        home_pos = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         
         dash_power = Strategy.get_normal_dash_power(agent)
         
