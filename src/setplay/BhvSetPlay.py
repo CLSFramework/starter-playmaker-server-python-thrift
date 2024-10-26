@@ -185,56 +185,55 @@ class BhvSetPlay:
                 return True
         return kicker.uniform_number == wm.myself.uniform_number
 
-    def is_delaying_tactics_situation(self, agent: IAgent):
+    def is_delaying_tactics_situation(agent: IAgent):
         wm = agent.wm
         real_set_play_count = wm.cycle - wm.last_set_play_start_time
         wait_buf = 15 if wm.game_mode_type == GameModeType.GoalKick_ else 2
-        if real_set_play_count >= ServerParam.drop_ball_time - wait_buf:
+        if real_set_play_count >= agent.serverParams.drop_ball_time - wait_buf:
             return False
-        our_score = wm.left_team_score if wm.our_side == LEFT else wm.right_team_score
-        opp_score = wm.right_team_score if wm.our_side == LEFT else wm.left_team_score
-        if wm.audioMemory().recoveryTime().cycle >= wm.cycle - 10:
+        our_score = wm.left_team_score if wm.our_side == Side.LEFT else wm.right_team_score
+        opp_score = wm.right_team_score if wm.our_side == Side.LEFT else wm.left_team_score
+        '''if wm.audioMemory().recoveryTime().cycle >= wm.cycle - 10:
             if our_score > opp_score:
-                return True
-        cycle_thr = max(0, ServerParam.nr_normal_halfs * (ServerParam.half_time * 10) - 500)
+                return True''' #TODO audio memory
+        cycle_thr = max(0, agent.serverParams.nr_normal_halfs * (agent.serverParams.half_time * 10) - 500)
         if wm.cycle < cycle_thr:
             return False
         if our_score > opp_score and our_score - opp_score <= 1:
             return True
         return False
 
-    def doBasicTheirSetPlayMove(self, agent: IAgent):
+    def doBasicTheirSetPlayMove(agent: IAgent):
         wm = agent.wm
-        target_point = Strategy.get_home_pos(wm, wm.myself.uniform_number)
-        agent.add_log_text(LoggerLevel.TEAM, __file__ + ": their set play. HomePosition=(%.2f, %.2f)" % (target_point.x, target_point.y))
-        dash_power = self.get_set_play_dash_power(agent)
-        ball_to_target = Vector2D(target_point - wm.ball.position)
+        target = Strategy.get_home_pos(agent, wm.myself.uniform_number)
+        target_point = Vector2D(target.x, target.y)
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        dash_power = BhvSetPlay.get_set_play_dash_power(agent)
+        ball_to_target = Vector2D(target_point - ball_position)
         if ball_to_target.r() < 11.0:
-            xdiff = math.sqrt(math.pow(11.0, 2) - math.pow(ball_to_target.y, 2))
-            target_point.x = wm.ball.position.x - xdiff
-            agent.add_log_text(LoggerLevel.TEAM, __file__ + ": avoid circle(1). adjust x. x_diff=%.1f newPos=(%.2f %.2f)" % (xdiff, target_point.x, target_point.y))
-            if target_point.x < -45.0:
-                target_point = wm.ball.position
+            xdiff = math.sqrt(math.pow(11.0, 2) - math.pow(ball_to_target.y(), 2))
+            target_point.set_x(wm.ball.position.x - xdiff)
+            if target_point.x() < -45.0:
+                target_point = ball_position
                 target_point += ball_to_target.set_length_vector(11.0)
-                agent.add_log_text(LoggerLevel.TEAM, __file__ + ": avoid circle(2). adjust len. new_pos=(%.2f %.2f)" % (target_point.x, target_point.y))
-        if wm.game_mode_type == GameModeType.KickOff_ and ServerParam.kickoff_offside:
-            target_point.x = min(-1.0e-5, target_point.x)
-            agent.add_log_text(LoggerLevel.TEAM, __file__ + ": avoid kickoff offside. (%.2f %.2f)" % (target_point.x, target_point.y))
-        agent.add_log_text(LoggerLevel.TEAM, __file__ + ": find sub target to avoid ball circle")
-        adjusted_point = self.get_avoid_circle_point(wm, target_point,agent)
+                
+        if wm.game_mode_type == GameModeType.KickOff_ and agent.serverParams.kickoff_offside:
+            target_point.set_x(min(-1.0e-5, target_point.x))
+
+        adjusted_point = BhvSetPlay.get_avoid_circle_point(wm, target_point,agent)
         dist_thr = wm.ball.dist_from_self * 0.1
         if dist_thr < 0.7:
             dist_thr = 0.7
-        if adjusted_point != target_point and wm.ball.position.dist(target_point) > 10.0 and Tools.inertia_final_point(wm.myself,wm.myself.position,wm.myself.velocity).dist(adjusted_point) < dist_thr:
-            agent.add_log_text(LoggerLevel.TEAM, __file__ + ": reverted to the first target point")
+        self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        if adjusted_point != target_point and ball_position.dist(target_point) > 10.0 and Tools.inertia_final_point(agent.playerTypes[wm.myself.id], self_position, self_velocity).dist(adjusted_point) < dist_thr:
             adjusted_point = target_point
-        agent.debugClient().setTarget(target_point)
-        agent.debugClient().addCircle(target_point, dist_thr)
-        if not Body_GoToPoint(adjusted_point, dist_thr, dash_power).execute(agent):
-            body_angle = wm.ball.angle_from_self
-            if body_angle < 0.0:
-                body_angle -= 90.0
-            else:
-                body_angle += 90.0
-            Body_TurnToAngle(body_angle).execute(agent)
-        agent.setNeckAction(Neck_TurnToBall())
+        actions = []
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(adjusted_point.x(), adjusted_point.y()), dist_thr, dash_power)))
+        body_angle = wm.ball.angle_from_self
+        if body_angle < 0.0:
+            body_angle -= 90.0
+        else:
+            body_angle += 90.0
+            actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(body_angle)))
+        return actions

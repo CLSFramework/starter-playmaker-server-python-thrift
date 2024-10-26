@@ -200,7 +200,7 @@ class BhvSetPlayIndirectFreeKick:
     def do_offense_move(self, agent: IAgent):
         wm = agent.wm
         actions = []
-        target_point = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target_point = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point.x = min(wm.offside_line_x - 1.0, target_point.x)
         target_point_vector2d = Vector2D(target_point.x, target_point.y)
 
@@ -239,7 +239,7 @@ class BhvSetPlayIndirectFreeKick:
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
-        target = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target.x, target.y)
         adjusted_point = BhvSetPlayIndirectFreeKick.get_avoid_circle_point(agent, target_point)
 

@@ -131,7 +131,7 @@ class BhvSetPlayGoalKick:
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         dist_thr = max(wm.ball.dist_from_self * 0.07, 1.0)
 
-        target_rpc = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target_rpc = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target_rpc.x, target_rpc.y)
         target_point.y() += wm.ball.position.y * 0.5
 

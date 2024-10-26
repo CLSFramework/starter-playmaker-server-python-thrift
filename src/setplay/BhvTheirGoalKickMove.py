@@ -67,7 +67,7 @@ class BhvTheirGoalKickMove:
         wm = agent.wm
         actions = []
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
-        targ = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        targ = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(targ.x, targ.y)
 
         # Attract to ball

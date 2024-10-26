@@ -107,7 +107,7 @@ class BhvSetPlayFreeKick:
     def do_move(agent:IAgent):
         wm = agent.wm
         actions = []
-        target_point_rpc = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target_point_rpc = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target_point_rpc.x, target_point_rpc.y)
         ball_positions = Vector2D(wm.ball.position.x, wm.ball.position.y)
         self_positions = Vector2D(wm.myself.position.x, wm.myself.position.y)

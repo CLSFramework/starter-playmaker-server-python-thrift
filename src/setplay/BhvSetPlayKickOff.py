@@ -102,7 +102,7 @@ class BhvSetPlayKickOff:
     def do_move(agent: IAgent):
         wm = agent.wm
         actions = []
-        target = Strategy.get_home_pos(wm, wm.myself.uniform_number)
+        target = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target.x, target.y)
         target_point.x = min(-0.5, target_point.x())
 
