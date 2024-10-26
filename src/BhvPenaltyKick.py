@@ -11,52 +11,52 @@ from pyrusgeom.ray_2d import Ray2D
 from pyrusgeom.size_2d import Size2D
 from pyrusgeom.rect_2d import Rect2D
 from pyrusgeom.line_2d import Line2D
-
+from src.ClearBall import ClearBall
 class BhvPenaltyKick:
     
     def __init__(self):
         pass
 
-    def decision(self, agent: IAgent):
+    def Decision(agent: IAgent):
         
         wm = agent.wm
         state = wm.penalty_kick_state
         if wm.game_mode_type == GameModeType.PenaltySetup_:
             if state.current_taker_side == wm.our_side:
-                if state.isKickTaker(wm.our_side, wm.myself.uniform_number):
-                    return self.doKickerSetup(agent)
+                if state.is_kick_taker:
+                    return BhvPenaltyKick.doKickerSetup(agent)
             else:
                 if wm.myself.is_goalie:
-                    return self.doGoalieSetup(agent)
+                    return BhvPenaltyKick.doGoalieSetup(agent)
         elif wm.game_mode_type == GameModeType.PenaltyReady_:
             if state.current_taker_side == wm.our_side:
-                if state.isKickTaker(wm.our_side, wm.myself.uniform_number):
-                    return self.doKickerReady(agent)
+                if state.is_kick_taker:
+                    return BhvPenaltyKick.doKickerReady(agent)
             else:
                 if wm.myself.is_goalie:
-                    return self.doGoalieSetup(agent)
+                    return BhvPenaltyKick.doGoalieSetup(agent)
         elif wm.game_mode_type == GameModeType.PenaltyTaken_:
             if state.current_taker_side == wm.our_side:
-                if state.isKickTaker(wm.our_side, wm.myself.uniform_number):
-                    return self.doKicker(agent)
+                if state.is_kick_taker:
+                    return BhvPenaltyKick.doKicker(agent)
             else:
                 if wm.myself.is_goalie:
-                    return self.doGoalie(agent)
+                    return BhvPenaltyKick.doGoalie(agent)
         elif wm.game_mode_type == GameModeType.PenaltyScore_ or wm.game_mode_type == GameModeType.PenaltyMiss_:
             if state.current_taker_side == wm.our_side: #TODO check
                 if wm.myself.is_goalie:
-                    return self.doGoalieSetup(agent)
+                    return BhvPenaltyKick.doGoalieSetup(agent)
         elif wm.game_mode_type == GameModeType.PenaltyOnfield_ or wm.game_mode_type == GameModeType.PenaltyFoul_:
             pass
         else:
             return []
 
         if wm.myself.is_goalie:
-            return self.doGoalieWait(agent)
+            return BhvPenaltyKick.doGoalieWait(agent)
         else:
-            return self.doKickerWait(agent)
+            return BhvPenaltyKick.doKickerWait(agent)
 
-    def doKickerWait(self, agent: IAgent):
+    def doKickerWait(agent: IAgent):
         wm = agent.wm
         actions = []
         dist_step = (9.0 + 9.0) / 12
@@ -70,7 +70,7 @@ class BhvPenaltyKick:
         return actions
             
 
-    def doKickerSetup(self, agent: IAgent):
+    def doKickerSetup(agent: IAgent):
         actions = []
         goal_c = Vector2D(agent.serverParams.pitch_half_length, 0.0)
         opps = agent.wm.opponents
@@ -94,14 +94,14 @@ class BhvPenaltyKick:
         state = wm.penalty_kick_state
         PenaltyKickState
         if wm.myself.stamina < agent.serverParams.stamina_max - 10.0 and (wm.cycle - state.cycle > agent.serverParams.pen_ready_wait - 3):
-            return BhvPenaltyKick.doKickerSetup(agent) #TODO state.cycle
+            return BhvPenaltyKick.doKickerSetup(agent)
 
         if not wm.myself.is_kickable:
             return BhvPenaltyKick.doKickerSetup(agent)
 
         return BhvPenaltyKick.doKicker(agent)
 
-    def doKicker(self, agent: IAgent):
+    def doKicker(agent: IAgent):
         wm = agent.wm
         actions = []
         if not wm.myself.is_kickable:
@@ -130,7 +130,7 @@ class BhvPenaltyKick:
         
         return actions
 
-    def doOneKickShoot(self, agent: IAgent):
+    def doOneKickShoot(agent: IAgent):
         wm = agent.wm
         actions = []
         ball_speed = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y).r()
@@ -174,35 +174,35 @@ class BhvPenaltyKick:
 
 
         return actions
-#---------------------------------------------------------------
-    def doShoot(self, agent: IAgent):
-        wm = agent.wm
-        time = wm.cycle
-        state = wm.PenaltyKickState()
-        elapsed_time = time - state.time
-        time_thr = agent.serverParams.pen_taken_wait - 25.0
-        if ( wm.cycle - state.time.cycle ) > agent.serverParams.pen_taken_wait - 25.0 : 
-            agent.add_log_text(LoggerLevel.TEAM , " (doShoot) time limit. stateTime={time}} spentTime={elapsed_time} timeThr={time_thr} force shoot. " ) 
 
-            return self.doOneKickShoot(agent)
+    def doShoot(agent: IAgent):
+        wm = agent.wm
+        actions = []
+        time = wm.cycle
+        state = wm.penalty_kick_state
+        elapsed_time = time - state.cycle
+        time_thr = agent.serverParams.pen_taken_wait - 25.0
+        if ( wm.cycle - state.cycle ) > agent.serverParams.pen_taken_wait - 25.0 : 
+            return BhvPenaltyKick.doOneKickShoot(agent)
         
         shot_point = Vector2D(0,0)
         shot_speed = 0.0
 
-        if self.getShootPos(agent,shot_point,shot_speed) :
-            agent.add_action(PlayerAction(body_smart_kick=Body_SmartKick(shot_point,shot_speed,shot_speed*0.96,2)))
-            return True
+        if BhvPenaltyKick.getShootPos(agent,shot_point,shot_speed) :
+            actions.append((PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(shot_point.x(), shot_point.y()),shot_speed,shot_speed*0.96,2))))
         
-        return False
+        return actions
 
-    def doDribble(self, agent: IAgent):
+    def doDribble(agent: IAgent):
+        actions = []
         CONTINUAL_COUNT = 20
         S_target_continual_count = CONTINUAL_COUNT
 
         SP = agent.serverParams
         wm = agent.wm
-
-        goal_c = Vector2D(SP.pitch_half_length,0.0)
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_velocity = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y)
+        goal_c = Vector2D(SP.pitch_half_length, 0.0)
 
         penalty_abs_x = SP.their_penalty_area_line_x
 
@@ -214,8 +214,10 @@ class BhvPenaltyKick:
         goalie_max_speed = 1.0
 
         my_abs_x = abs(wm.myself.position.x)
-
-        goalie_dist = (opp_goalie.position.dist(wm.myself.position) 
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
+        opp_goalie_position = Vector2D(opp_goalie.position.x, opp_goalie.position.y)
+        goalie_dist = (opp_goalie_position.dist(self_position) 
                        - goalie_max_speed * min(5, opp_goalie.pos_count) 
                        if opp_goalie else 200.0)
         goalie_abs_x = (abs(opp_goalie.position.x) if opp_goalie else 200.0)
@@ -240,164 +242,145 @@ class BhvPenaltyKick:
 
                 if S_target_continual_count > 0:
                     if wm.myself.position.y < -base_target_abs_y + 2.0:
-                        drib_target.y = base_target_abs_y
-                        agent.add_log_text(LoggerLevel.TEAM, 
-                                       f"dribble(1). target=({drib_target.x}, {drib_target.y})")
+                        drib_target.set_y(base_target_abs_y)
                     else:
-                        drib_target.y = -base_target_abs_y
-                        agent.add_log_text(LoggerLevel.TEAM, 
-                                       f"dribble(2). target=({drib_target.x}, {drib_target.y})")
+                        drib_target.set_y(-base_target_abs_y)
+
                 else:
                     if wm.myself.position.y > base_target_abs_y - 2.0:
-                        drib_target.y = -base_target_abs_y
-                        agent.add_log_text(LoggerLevel.TEAM, 
-                                           f"dribble(3). target=({drib_target.x}, {drib_target.y})")
+                        drib_target.set_y(-base_target_abs_y)
+
                     else:
-                        drib_target.y = base_target_abs_y
-                        agent.add_log_text(LoggerLevel.TEAM, 
-                                       f"dribble(4). target=({drib_target.x}, {drib_target.y})")
+                        drib_target.set_y(base_target_abs_y)
 
-                drib_target.x = goalie_abs_x + 1.0
-                drib_target.x = min(max(penalty_abs_x - 2.0, drib_target.x), 
-                                    SP.pitch_half_length - 4.0)
+                drib_target.set_x(goalie_abs_x + 1.0)
+                drib_target.set_x(min(max(penalty_abs_x - 2.0, drib_target.x()), 
+                                    SP.pitch_half_length - 4.0))
 
-                dashes = (wm.myself.position.dist(drib_target) * 0.8 
+                dashes = (self_position.dist(drib_target) * 0.8 
                       / SP.player_speed_max)
                 drib_dashes = int(dashes // 1)
                 drib_dashes = min(max(1, drib_dashes), 6)
-                agent.add_log_text(LoggerLevel.TEAM, 
-                               f"dribble. target=({drib_target.x}, {drib_target.y}) dashes={drib_dashes}")
 
         if opp_goalie and goalie_dist < 5.0:
-            drib_angle = Vector2D(drib_target - wm.myself.position).th()
-            goalie_angle = Vector2D(opp_goalie.position - wm.myself.position).th()
+            drib_angle = Vector2D(drib_target - self_position).th()
+            goalie_angle = Vector2D(opp_goalie_position - self_position).th()
             drib_dashes = 6
             if abs(drib_angle - goalie_angle) < 80.0:
                 drib_target = wm.myself.position
-                drib_target += Vector2D.polar2vector(10.0, 
-                                                 goalie_angle 
-                                                 + (wm.myself.position.y > 0 
-                                                    and -1.0 
-                                                    or +1.0) * 55.0)
-                agent.add_log_text(LoggerLevel.TEAM, 
-                               f"dribble. avoid goalie. target=({drib_target.x}, {drib_target.y})")
-            agent.add_log_text(LoggerLevel.TEAM, 
-                           f"dribble. goalie near. dashes={drib_dashes}")
+                drib_target += Vector2D.polar2vector(10.0, goalie_angle + (self_position.y > 0 and -1.0 or +1.0) * 55.0)
 
-        target_rel = Vector2D(drib_target - wm.myself.position)
+        target_rel = Vector2D(drib_target - self_position)
         buf = 2.0
         if abs(drib_target.x()) < penalty_abs_x:
             buf += 2.0
 
         if abs(target_rel.x()) < 5.0 and (not opp_goalie 
-                                        or opp_goalie.position.dist(drib_target) > target_rel.r() - buf):
+                                        or opp_goalie_position.dist(drib_target) > target_rel.r() - buf):
             if abs(target_rel.th() - wm.myself.body_direction) < 5.0:
-                first_speed = self.calc_first_term_geom_series_last(0.5, 
+                first_speed = BhvPenaltyKick.calc_first_term_geom_series_last(0.5, 
                                                            target_rel.r(), 
                                                            SP.ball_decay)
                 first_speed = min(first_speed, SP.ball_speed_max)
-                agent.add_action( PlayerAction(body_smart_kick=Body_SmartKick(drib_target,first_speed,first_speed*0.96,3)))
-                agent.add_log_text(LoggerLevel.TEAM, 
-                               f"kick. to=({drib_target.x}, {drib_target.y}) first_speed={first_speed}")
-            elif Vector2D(wm.ball.position + wm.ball.velocity - wm.myself.velocity).r() < agent.serverParams.kickable_area - 0.2:
-                agent.add_action(PlayerAction(body_turn_to_point=Body_TurnToPoint(drib_target)))
+                actions.append( PlayerAction(body_smart_kick=Body_SmartKick(RpcVector2D(drib_target.x(), drib_target.y()), first_speed, first_speed * 0.96, 3)))
+            
+            elif Vector2D(ball_position + ball_velocity - self_velocity).r() < agent.serverParams.kickable_area - 0.2:
+                actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(drib_target.x(), drib_target.y()))))
             else:
-                agent.add_action(PlayerAction(body_stop_ball=Body_StopBall()))
+                actions.append(PlayerAction(body_stop_ball=Body_StopBall()))
         else:
-            agent.add_action(Dribble.Decision(agent))
+            actions += Dribble.Decision(agent)
 
         if opp_goalie:
-            agent.add_action(PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position)))
+            actions.append(PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position)))
         else:
-            agent.add_action(PlayerAction(neck_scan_field=Neck_ScanField()))
+            actions.append(PlayerAction(neck_scan_field=Neck_ScanField()))
 
-        return True            
+        return actions            
 
-    def doGoalieWait(self, agent: IAgent):
-        
-        agent.add_action(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
-        agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+    def doGoalieWait(agent: IAgent):
+        actions = []
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
 
-        return True
+        return actions
 
-    def doGoalieSetup(self, agent: IAgent):
+    def doGoalieSetup(agent: IAgent):
         
         wm = agent.wm
         move_point = Vector2D(-agent.serverParams.pitch_half_length + agent.serverParams.pen_max_goalie_dist_x - 0.1,0.0)
-
-        agent.add_action(PlayerAction(body_go_to_point=Body_GoToPoint(move_point,0.5,agent.serverParams.max_dash_power)))
+        actions = []
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(move_point,0.5,agent.serverParams.max_dash_power)))
 
         if abs(wm.myself.body_direction) > 2.0 : 
             
-            face_point = Vector2D(0.0,0.0)
-            agent.add_action(PlayerAction(body_turn_to_point=Body_TurnToPoint(face_point)))
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(0, 0))))
         
-        agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+        #actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
 
-        return True
-    def doGoalie(self, agent: IAgent):
+        return actions
+    def doGoalie(agent: IAgent):
         SP = agent.serverParams
         wm = agent.wm
-
+        actions = []
         # check if catchable
         our_penalty = Rect2D(Vector2D(-SP.pitch_half_length, -SP.penalty_area_half_width + 1.0),
                              Size2D(SP.penalty_area_length - 1.0, (SP.penalty_area_half_width*2.0) - 2.0))
-
-        if wm.ball.dist_from_self < SP.catchable_area - 0.05 and our_penalty.contains(wm.ball.position):
-            agent.add_log_text(LoggerLevel.TEAM, "goalie try to catch")
-            return agent.add_action(PlayerAction(catch_action = Catch()))
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_velocity = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y)
+        if wm.ball.dist_from_self < SP.catchable_area - 0.05 and our_penalty.contains(ball_position):
+            return [PlayerAction(catch_action = Catch())]
 
         if agent.wm.myself.is_kickable:
-            agent.add_action(PlayerAction(body_clear_ball=Body_ClearBall()))
-            agent.add_action(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
-            return True
+            actions += ClearBall.Decision(agent)
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            return actions
 
         # if taker can only one kick, goalie should stay the front of goal.
         if not SP.pen_allow_mult_kicks:
             # kick has not been taken.
-            if Vector2D(wm.ball.velocity).r2() < 0.01 and abs(wm.ball.position.x) < SP.pitch_half_length - SP.pen_dist_x - 1.0:
-                return self.doGoalieSetup(agent)
+            if ball_velocity.r2() < 0.01 and abs(wm.ball.position.x) < SP.pitch_half_length - SP.pen_dist_x - 1.0:
+                return BhvPenaltyKick.doGoalieSetup(agent)
 
-            if Vector2D(wm.ball.velocity).r2() > 0.01:
-                return self.doGoalieSlideChase(agent)
+            if ball_velocity.r2() > 0.01:
+                return BhvPenaltyKick.doGoalieSlideChase(agent)
 
-        return self.doGoalieBasicMove(agent)
+        return BhvPenaltyKick.doGoalieBasicMove(agent)
 
-    def doGoalieBasicMove(self, agent: IAgent):
+    def doGoalieBasicMove(agent: IAgent):
         SP = agent.serverParams
         wm = agent.wm
-
+        actions = []
         our_penalty = Rect2D(Vector2D(-SP.pitch_half_length, -SP.penalty_area_half_width + 1.0),
                              Size2D(SP.penalty_area_length - 1.0, (SP.penalty_area_half_width*2.0) - 2.0))
 
-        agent.add_log_text(LoggerLevel.TEAM, "goalieBasicMove. ")
 
         # get active interception catch point
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_velocity = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y)
         self_min = wm.intercept_table.self_reach_steps
-        move_pos = Tools.inertia_point(self_min)
+        move_pos = Tools.inertia_point(ball_position, ball_velocity, self_min, agent.serverParams.ball_decay)
 
         if our_penalty.contains(move_pos):
-            agent.add_log_text(LoggerLevel.TEAM, "goalieBasicMove. exist intercept point ")
             # ExistIntPoint
             if wm.intercept_table.first_opponent_reach_steps < wm.intercept_table.self_reach_steps or wm.intercept_table.self_reach_steps <= 4:
-                agent.add_action(PlayerAction(body_intercept=Body_Intercept(False)))
-                agent.add_log_text(LoggerLevel.TEAM, "goalieBasicMove. do intercept ")
-                agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
-                return True
+                actions.append(PlayerAction(body_intercept=Body_Intercept(False)))
+                return actions
 
-        my_pos = wm.myself.position
-        ball_pos = wm.ball.position
+        my_pos = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        ball_pos: Vector2D
         if wm.intercept_table.first_opponent_reach_steps < wm.intercept_table.self_reach_steps:
-            ball_pos = Tools.OpponentsFromBall.top.position
-            ball_pos += Tools.OpponentsFromBall.top.velocity
+            opp = Tools.OpponentsFromBall(agent)
+            opp_pos = opp[0]
+            ball_pos = Vector2D(opp_pos.x, opp_pos.y)
+            ball_pos += Vector2D(opp.velocity.x, opp.velocity.y)
         else:
-            ball_pos = inertia_n_step_point(wm.ball.position, wm.ball.velocity, 3, SP.ball_decay)
+            ball_pos = inertia_n_step_point(ball_pos, ball_velocity, 3, SP.ball_decay)
 
-        move_pos = Vector2D(self.getGoalieMovePos(ball_pos, my_pos))
+        move_pos = BhvPenaltyKick.getGoalieMovePos(agent, ball_pos, my_pos)
 
-        agent.add_log_text(LoggerLevel.TEAM, "goalie basic move to (%.1f, %.1f)", move_pos.x, move_pos.y)
 
-        agent.add_action(PlayerAction(body_go_to_point=Body_GoToPoint(move_pos,0.5,SP.max_dash_power)))
+        actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(move_pos.x(), move_pos.y()), 0.5, SP.max_dash_power)))
 
         # already there
         face_angle = wm.ball.angle_from_self
@@ -406,11 +389,10 @@ class BhvPenaltyKick:
         else:
             face_angle -= 90.0
 
-        agent.add_action(PlayerAction(body_turn_to_angle=Body_TurnToAngle(face_angle)))
-        agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+        actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(face_angle)))
 
-        return True
-
+        return actions
+# --------------------------------------------------- HERE -------------------
     def getGoalieMovePos(self,agent : IAgent, ball_pos: Vector2D, my_pos):
         SP = agent.serverParams
         min_x = -SP.pitch_half_length + SP.catch_area_l * 0.9
