@@ -392,16 +392,16 @@ class BhvPenaltyKick:
         actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(face_angle)))
 
         return actions
-# --------------------------------------------------- HERE -------------------
-    def getGoalieMovePos(self,agent : IAgent, ball_pos: Vector2D, my_pos):
+
+    def getGoalieMovePos(agent : IAgent, ball_pos: Vector2D, my_pos: Vector2D):
         SP = agent.serverParams
         min_x = -SP.pitch_half_length + SP.catch_area_l * 0.9
 
         if ball_pos.x < -49.0:
             if abs(ball_pos.y) < (SP.goal_width / 2.0 ):
-                return Vector2D(min_x, ball_pos.y)
+                return Vector2D(min_x, ball_pos.y())
             else:
-                return Vector2D(min_x, math.copysign((SP.goal_width / 2.0), ball_pos.y))
+                return Vector2D(min_x, math.copysign((SP.goal_width / 2.0), ball_pos.y()))
 
         goal_l = Vector2D(-SP.pitch_half_length, -(SP.goal_width / 2.0))
         goal_r = Vector2D(-SP.pitch_half_length, (SP.goal_width / 2.0))
@@ -423,85 +423,81 @@ class BhvPenaltyKick:
             alpha = math.degrees(math.atan2((SP.goal_width / 2.0), SP.penalty_area_length - 2.5))
             dist_from_goal = ((line_l.dist(intersection) + line_r.dist(intersection)) * 0.5) / math.sin(math.radians(alpha))
 
-            agent.add_log_text(LoggerLevel.TEAM, "goalie move. intersection=(%.1f, %.1f) dist_from_goal=%.1f", intersection.x, intersection.y, dist_from_goal)
             if dist_from_goal <= (SP.goal_width / 2.0):
                 dist_from_goal = (SP.goal_width / 2.0)
-                agent.add_log_text(LoggerLevel.TEAM, "goalie move. outer of goal. dist_from_goal=%.1f", dist_from_goal)
 
             if (ball_pos - intersection).r() + 1.5 < dist_from_goal:
                 dist_from_goal = (ball_pos - intersection).r() + 1.5
-                agent.add_log_text(LoggerLevel.TEAM, "goalie move. near than ball. dist_from_goal=%.1f", dist_from_goal)
 
             position_error = line_dir - Vector2D(intersection - my_pos).th()
 
             danger_angle = 21.0
-            agent.add_log_text(LoggerLevel.TEAM, "goalie move position_error_angle=%.1f", position_error.degree())
+
             if position_error.abs() > danger_angle:
                 dist_from_goal *= ((1.0 - ((position_error.abs() - danger_angle) / (180.0 - danger_angle))) * 0.5)
-                agent.add_log_text(LoggerLevel.TEAM, "goalie move. error is big. dist_from_goal=%.1f", dist_from_goal)
 
             result = intersection
             add_vec = ball_pos - intersection
-            add_vec.setLength(dist_from_goal)
-            agent.add_log_text(LoggerLevel.TEAM, "goalie move. intersection=(%.1f, %.1f) add_vec=(%.1f, %.1f)%.2f", intersection.x, intersection.y, add_vec.x, add_vec.y, add_vec.r())
+            add_vec.set_length(dist_from_goal)
+
             result += add_vec
-            if result.x < min_x:
-                result.x = min_x
+            if result.set_x < min_x:
+                result.set_x(min_x)
             return result
         else:
-            agent.add_log_text(LoggerLevel.TEAM, "goalie move. shot line has no intersection with goal line")
-
-            if ball_pos.x > 0.0:
+            if ball_pos.x() > 0.0:
                 return Vector2D(min_x, goal_l.y)
-            elif ball_pos.x < 0.0:
+            elif ball_pos.x() < 0.0:
                 return Vector2D(min_x, goal_r.y)
             else:
                 return Vector2D(min_x, 0.0)
 
-    def doGoalieSlideChase(self, agent:IAgent):
+    def doGoalieSlideChase(agent:IAgent):
         wm = agent.wm
-
+        actions = []
         if math.fabs(90.0 - abs(wm.myself.body_direction)) > 2.0:
             face_point = Vector2D(wm.myself.position.x, 100.0)
             if wm.myself.body_direction < 0.0:
-                face_point.y = -100.0
+                face_point.set_y(-100.0)
             
-            agent.add_action(PlayerAction(body_turn_to_point=Body_TurnToPoint(face_point)))
-            agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
-            
-            return True
-
-        ball_ray = Ray2D(wm.ball.position, Vector2D(wm.ball.velocity).th())
+            actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(face_point.x(), face_point.y()))))
+            #actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+            return actions
+        self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
+        
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        ball_veclocity = Vector2D(wm.ball.velocity.x, wm.ball.velocity.y)
+        ball_ray = Ray2D(ball_position, ball_veclocity.th())
         ball_line = Line2D(ball_ray.origin(), ball_ray.dir())
-        my_line = Line2D(wm.myself.position, wm.myself.body_direction)
+        my_line = Line2D(self_position, wm.myself.body_direction)
 
         intersection = Vector2D(my_line.intersection(ball_line))
-        if not intersection.is_valid() or not ball_ray.dir < (intersection):
-            agent.add_action(PlayerAction(body_intercept=Body_Intercept()))
+        if not intersection.is_valid() or not ball_ray.dir() < (intersection):
+            actions.append(PlayerAction(body_intercept=Body_Intercept()))
             # goalie mode
-            agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
-            return True
+            actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+            return actions
 
         if wm.myself.position.dist(intersection) < agent.serverParams.catch_area_l * 0.7:
-            agent.add_action(PlayerAction(body_stop_dash=Body_StopDash()))
+            actions.append(PlayerAction(body_stop_dash=Body_StopDash()))
             # not save recovery
-            agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
-            return True
+            actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+            return actions
 
-        angle = Vector2D(intersection - wm.myself.position).th()
+        angle = Vector2D(intersection - self_position).th()
         dash_power = agent.serverParams.max_dash_power
 
-        if abs(angle - wm.myself.body_direction) > 90.0:
+        if abs(angle.degree() - wm.myself.body_direction) > 90.0:
             dash_power = agent.serverParams.min_dash_power
-        agent.add_action(PlayerAction(dash=Dash(dash_power)))
-        agent.add_action(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
-        return True
+        actions.append(PlayerAction(dash=Dash(dash_power)))
+        actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
+        return actions
 
-    def getShootPos(self, agent: IAgent, point=None, first_speed=None):
+    def getShootPos(agent: IAgent, point, first_speed):
         wm = agent.wm
         SP = agent.serverParams
-
-        if Vector2D(SP.pitch_half_length,0.0).dist2(wm.ball.position) > 35.0 ** 2:
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        if Vector2D(SP.pitch_half_length,0.0).dist2(ball_position) > 35.0 ** 2:
             # too far
             return False
 
