@@ -1,9 +1,9 @@
 from src.IAgent import IAgent
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from soccer.ttypes import *
-from Strategy import *
+from src.Strategy import *
 from pyrusgeom.vector_2d import Vector2D
-from Tools import Tools
+from src.Tools import Tools
 from pyrusgeom.soccer_math import inertia_n_step_point
 from pyrusgeom.ray_2d import Ray2D
 from pyrusgeom.size_2d import Size2D
@@ -66,6 +66,7 @@ class BhvTheirGoalKickMove:
     def do_normal(agent: IAgent):
         wm = agent.wm
         actions = []
+        from src.setplay.BhvSetPlay import BhvSetPlay
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         targ = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(targ.x, targ.y)

@@ -1,10 +1,10 @@
 from src.IAgent import IAgent
-from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
 from src.Tools import Tools
-from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+#from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from src.Strategy import Strategy
 
 class BhvSetPlayKickOff:
@@ -25,6 +25,7 @@ class BhvSetPlayKickOff:
     def do_kick(agent: IAgent):
         # Go to the ball position
         actions = []
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
         actions += BhvGoToPlacedBall(0.0).Decision(agent)
         
         # Wait
@@ -77,7 +78,7 @@ class BhvSetPlayKickOff:
 
         if real_set_play_count >= agent.serverParams.drop_ball_time - 5:
             return []
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_delaying_tactics_situation(agent):
             actions.append(PlayerAction(body_turn_to_angle=Body_TurnToAngle(180)))
             return actions
@@ -105,7 +106,7 @@ class BhvSetPlayKickOff:
         target = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target.x, target.y)
         target_point.x = min(-0.5, target_point.x())
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         dist_thr = wm.ball.dist_from_self * 0.07
         if dist_thr < 1.0:

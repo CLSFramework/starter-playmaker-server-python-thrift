@@ -2,15 +2,17 @@ import math
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+#from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from src.Pass import Pass
 from src.Tools import Tools
 import math
 from pyrusgeom.soccer_math import *
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from src.Strategy import Strategy
 class BhvSetPlayKickIn:
 
+    def __init__():
+        pass
     def Decision(agent: IAgent) -> bool:
         agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: Bhv_SetPlayKickIn")
 
@@ -22,6 +24,7 @@ class BhvSetPlayKickIn:
         return []
 
     def do_kick(agent: IAgent):
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
         wm = agent.wm
         actions = []
         # Go to the kick position
@@ -90,7 +93,7 @@ class BhvSetPlayKickIn:
         actions = []
         if real_set_play_count >= agent.serverParams.drop_ball_time - 5:
             return []
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_delaying_tactics_situation(agent):
             actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(0, 0))))
             return actions
@@ -139,7 +142,7 @@ class BhvSetPlayKickIn:
                 target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length()))
                 target_point.set_y (min(max(-agent.serverParams.pitch_half_width, target_point.y), agent.serverParams.pitch_half_width))
                 avoid_opponent = True
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         dist_thr = wm.ball.dist_from_self * 0.07
         dist_thr = max(dist_thr, 1.0)

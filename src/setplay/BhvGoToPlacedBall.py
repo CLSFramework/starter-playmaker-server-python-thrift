@@ -1,7 +1,7 @@
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from src.Tools import Tools
 
 class BhvGoToPlacedBall:
@@ -12,7 +12,7 @@ class BhvGoToPlacedBall:
 
     def Decision(self, agent: IAgent):
         actions = []
-        
+        from src.setplay.BhvSetPlay import BhvSetPlay
         dir_margin = 15.0
         sp = agent.serverParams
         wm = agent.wm

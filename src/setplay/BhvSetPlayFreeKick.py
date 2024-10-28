@@ -2,8 +2,8 @@ import math
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-from src.setplay.BhvSetPlay import BhvSetPlay
-from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+#from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from pyrusgeom.soccer_math import calc_length_geom_series
 from pyrusgeom.soccer_math import calc_first_term_geom_series
 from src.Pass import Pass
@@ -17,7 +17,7 @@ class BhvSetPlayFreeKick:
         pass
     
     def Decision(agent: IAgent):
-        
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_kicker(agent):
             return BhvSetPlayFreeKick.doKick(agent)
         else:
@@ -25,6 +25,7 @@ class BhvSetPlayFreeKick:
 
     def doKick(agent:IAgent):
         actions = []
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
         # go to the ball position
         actions += BhvGoToPlacedBall(0.0).Decision(agent)
 
@@ -70,6 +71,7 @@ class BhvSetPlayFreeKick:
 
     def doKickWait(agent:IAgent):
         wm = agent.wm
+        from src.setplay.BhvSetPlay import BhvSetPlay
         actions = []
         real_set_play_count = wm.cycle - wm.last_set_play_start_time
 
@@ -130,8 +132,8 @@ class BhvSetPlayFreeKick:
                 target_point.y = min(max(-agent.serverParams.pitch_half_width, target_point.y), agent.serverParams.pitch_half_width)
 
         target_point.x = min(target_point.x, wm.offside_line_x - 0.5)
-
-        dash_power = BhvSetPlay().get_set_play_dash_power(agent)
+        from src.setplay.BhvSetPlay import BhvSetPlay
+        dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         dist_thr = wm.ball.dist_from_self * 0.07
         if dist_thr < 1.0:
             dist_thr = 1.0

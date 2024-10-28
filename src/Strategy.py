@@ -8,7 +8,7 @@ class Strategy:
     def __init__(self):
         pass
     
-    def get_home_pos(agent: IAgent, unum: int) -> RpcVector2D:
+    def get_home_pos(agent: IAgent, uni_number: int) -> RpcVector2D:
         wm = agent.wm
         if wm.game_mode_type in [GameModeType.BeforeKickOff, GameModeType.AfterGoal_]:
             kick_off_position = [None] * 12
@@ -23,7 +23,7 @@ class Strategy:
             kick_off_position[9] = RpcVector2D(-11, 0)
             kick_off_position[10] = RpcVector2D(-5, -20)
             kick_off_position[11] = RpcVector2D(-5, 20)
-            return kick_off_position[unum]
+            return kick_off_position[uni_number]
         ball_step = 0
         if wm.game_mode_type == GameModeType.PlayOn or wm.game_mode_type == GameModeType.GoalKick_:
             ball_step = min(1000, wm.intercept_table.first_teammate_reach_steps)
@@ -67,7 +67,7 @@ class Strategy:
             for unum in range(1, 12):
                 positions[unum].x = min(positions[unum].x, max_x)
     
-        return positions[unum]
+        return positions[uni_number]
             
             
     s_recover_mode = False

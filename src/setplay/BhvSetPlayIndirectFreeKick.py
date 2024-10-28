@@ -5,11 +5,11 @@ from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.segment_2d import Segment2D
 from pyrusgeom.circle_2d import Circle2D
 from soccer.ttypes import *
-from src.setplay.BhvSetPlay import BhvSetPlay
-from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+#from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from src.Pass import Pass
 from src.Tools import Tools
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from src.Strategy import Strategy
 import pyrusgeom.soccer_math as smath
 from pyrusgeom.soccer_math import *
@@ -24,7 +24,7 @@ class BhvSetPlayIndirectFreeKick:
         wm = agent.wm
         our_kick = (wm.game_mode_type == GameModeType.BackPass_ and wm.game_mode_side != wm.our_side) or (wm.game_mode_type == GameModeType.IndFreeKick_ and wm.game_mode_side == wm.our_side) or (wm.game_mode_type == GameModeType.FoulCharge_ and wm.game_mode_side != wm.our_side) or (wm.game_mode_type == GameModeType.FoulPush_ and  wm.game_mode_side != wm.our_side ) 
         our_kick = True
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if our_kick:
             if BhvSetPlay.is_kicker(agent):
                 return BhvSetPlayIndirectFreeKick.do_kicker(agent)
@@ -38,6 +38,7 @@ class BhvSetPlayIndirectFreeKick:
     def do_kicker(agent: IAgent):
         # go to ball
         actions = []
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
         actions += BhvGoToPlacedBall.Decision(agent=agent)
 
         # wait
@@ -194,7 +195,7 @@ class BhvSetPlayIndirectFreeKick:
             rel.set_length(circle_r)
             point = ball_position + rel
 
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         return BhvSetPlay.get_avoid_circle_point(wm, point)
 
     def do_offense_move(self, agent: IAgent):
@@ -210,7 +211,7 @@ class BhvSetPlayIndirectFreeKick:
         teammate_pos = Vector2D(teammate.posicion.x, teammate.position.y)
         if nearest_dist < 2.5:
             target_point_vector2d += (target_point_vector2d - teammate_pos).set_length_vector(2.5)
-            target_point_vector2d.x() = min(wm.offside_line_x - 1.0, target_point_vector2d.x())
+            target_point_vector2d.set_x( min(wm.offside_line_x - 1.0, target_point_vector2d.x()))
 
         dash_power = 50
         dash_power = wm.myself.get_safety_dash_power()

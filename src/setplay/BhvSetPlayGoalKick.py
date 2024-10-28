@@ -1,7 +1,7 @@
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from src.ClearBall import ClearBall
 from src.Tools import Tools
 from src.BhvBasicOffensiveKick import BhvBasicOffensiveKick
@@ -14,7 +14,7 @@ class BhvSetPlayGoalKick:
         pass
     
     def Decision(agent:IAgent):
-        
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_kicker(agent):
             return BhvSetPlayGoalKick.do_kick(agent)
         else:
@@ -75,7 +75,7 @@ class BhvSetPlayGoalKick:
 
         if real_set_play_count >= agent.serverParams.drop_ball_time - 10:
             return []
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_delaying_tactics_situation(agent):
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
         
@@ -125,7 +125,7 @@ class BhvSetPlayGoalKick:
     def do_move(agent:IAgent):
         actions = []
         actions += BhvSetPlayGoalKick.do_intercept(agent)
-        
+        from src.setplay.BhvSetPlay import BhvSetPlay
         wm = agent.wm
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
@@ -133,10 +133,10 @@ class BhvSetPlayGoalKick:
 
         target_rpc = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target_rpc.x, target_rpc.y)
-        target_point.y() += wm.ball.position.y * 0.5
+        target_point.set_y(target_point.y() + wm.ball.position.y * 0.5)
 
         if abs(target_point.y()) > agent.serverParams.pitch_half_width - 1.0:
-            target_point.y() = (target_point.y() / abs(target_point.y())) * (agent.serverParams.pitch_half_width - 1.0)
+            target_point.set_y((target_point.y() / abs(target_point.y())) * (agent.serverParams.pitch_half_width - 1.0))
 
         if wm.myself.stamina > agent.serverParams.stamina_max * 0.9:
             
@@ -153,8 +153,8 @@ class BhvSetPlayGoalKick:
                 else:
                     target_point += add_vec.rotated_vector(-90.0)
 
-                target_point.x() = min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length)
-                target_point.y() = min(max(-agent.serverParams.pitch_half_width, target_point.y()), agent.serverParams.pitch_half_width)
+                target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length))
+                target_point.set_y(min(max(-agent.serverParams.pitch_half_width, target_point.y()), agent.serverParams.pitch_half_width))
 
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(target_point.x(), target_point.y()), dist_thr, dash_power)))
         actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
