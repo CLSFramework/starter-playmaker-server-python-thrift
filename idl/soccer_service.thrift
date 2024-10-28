@@ -1126,7 +1126,8 @@ struct ServerParam {
   223: double goal_area_width,
   224: double goal_area_length,
   225: double center_circle_r,
-  226: double goal_post_radius
+  226: double goal_post_radius,
+  227: double pitch_margin
 }
 
 struct PlayerParam {

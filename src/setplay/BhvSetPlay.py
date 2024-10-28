@@ -17,7 +17,6 @@ class BhvSetPlay:
 
     def Decision(agent: IAgent):
         wm = agent.wm
-
         if wm.myself.is_goalie:
             if wm.game_mode_type != GameModeType.BackPass_ and wm.game_mode_type != GameModeType.IndFreeKick_:
                 return BhvSetPlayGoalKick.Decision(agent)
@@ -78,11 +77,11 @@ class BhvSetPlay:
                 return (agent.playerTypes[wm.myself.id].stamina_inc_max * wm.myself.recovery * rate)
         return wm.myself.get_safety_dash_power
 
-    def can_go_to(agent:IAgent, count, wm, ball_circle: Circle2D, target_point:Vector2D) -> bool:
+    def can_go_to(agent: IAgent, count, wm, ball_circle: Circle2D, target_point:Vector2D) -> bool:
         wm = agent.wm
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         move_line = Segment2D(self_position, target_point)
-        n_intersection = ball_circle.intersection(move_line, None, None)
+        n_intersection = ball_circle.intersection(move_line)
 
         num = str(count)
 
@@ -96,7 +95,7 @@ class BhvSetPlay:
         return False
 
     def get_avoid_circle_point(wm, target_point,agent:IAgent):
-        SP = ServerParam
+        SP = agent.serverParams
         wm = agent.wm
         avoid_radius = SP.center_circle_r + agent.playerTypes[wm.myself.id].player_size
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
@@ -105,7 +104,7 @@ class BhvSetPlay:
             return target_point
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         target_angle = Vector2D(target_point - self_position).th()
-        ball_target_angle = Vector2D(target_point - wm.ball.position).th()
+        ball_target_angle = Vector2D(target_point - ball_position).th()
         ball_ang = AngleDeg(wm.ball.angle_from_self)
         ball_is_left = ball_ang.is_left_of(target_angle)
         ANGLE_DIVS = 6
@@ -115,11 +114,11 @@ class BhvSetPlay:
         a = angle_step
         for i in range(1, ANGLE_DIVS):
             angle = ball_target_angle + (180.0 / ANGLE_DIVS) * a
-            new_target = Vector2D(wm.ball.position + Vector2D.from_polar(avoid_radius + 1.0, angle))
+            new_target = Vector2D(ball_position + Vector2D.from_polar(avoid_radius + 1.0, angle))
 
-            if abs(new_target.x()) > SP.pitch_half_length + SP.pith_margin - 1.0 or abs(new_target.y) > SP.pitch_half_width + SP.pitchMargin() - 1.0: #TODO pith_margin
+            if abs(new_target.x()) > SP.pitch_half_length + SP.pitch_margin - 1.0 or abs(new_target.y()) > SP.pitch_half_width + SP.pitch_margin - 1.0: #TODO pith_margin
                 break
-            if BhvSetPlay.can_go_to(count, wm, ball_circle, new_target, agent):
+            if BhvSetPlay.can_go_to(agent, count, wm, ball_circle, new_target):
                 return new_target
             a += angle_step
             count += 1
@@ -128,9 +127,9 @@ class BhvSetPlay:
             angle = ball_target_angle + (180.0 / ANGLE_DIVS) * a
             new_target = Vector2D(ball_position + Vector2D.from_polar(avoid_radius + 1.0, angle))
 
-            if abs(new_target.x()) > SP.pitch_half_length + SP.pitchMargin - 1.0 or abs(new_target.y()) > SP.pitch_half_width + SP.pitchMargin() - 1.0: #TODO
+            if abs(new_target.x()) > SP.pitch_half_length + SP.pitch_margin - 1.0 or abs(new_target.y()) > SP.pitch_half_width + SP.pitch_margin - 1.0:
                 break
-            if BhvSetPlay.can_go_to(count, wm, ball_circle, new_target, agent):
+            if BhvSetPlay.can_go_to(agent, count, wm, ball_circle, new_target):
                 return new_target
             a -= angle_step
             count += 1
@@ -142,14 +141,15 @@ class BhvSetPlay:
         if wm.game_mode_type == GameModeType.GoalieCatch_ and wm.game_mode_side == wm.our_side and not wm.myself.is_goalie:
             return False
         kicker_unum = 0
-        min_dist2 = float('inf')
-        second_kicker_unum = 0
-        second_min_dist2 = float('inf')
+        min_dist2 = 100000.0
+        second_kicker_unum = 100000.0
+        second_min_dist2 = 100000.0
         for unum in range(1, 12):
             if unum == wm.our_goalie_uniform_number:
                 continue
-            home_pos = Vector2D(Strategy.get_home_pos(agent, unum).x, Strategy.get_home_pos(agent, unum).y)
-            if not home_pos.is_valid:
+            h_p:RpcVector2D = Strategy.get_home_pos(agent, unum)
+            home_pos = Vector2D(h_p.x, h_p.y)
+            if not home_pos.is_valid():
                 continue
             d2 = home_pos.dist2(ball_position)
             if d2 < second_min_dist2:

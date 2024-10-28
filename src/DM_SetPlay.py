@@ -7,7 +7,7 @@ class SetPlayDecisionMaker(IDecisionMaker):
     def __init__(self):
         pass
     
-    def make_decision(self, agent: IAgent, wm: WorldModel):
+    def make_decision(agent: IAgent, wm: WorldModel):
         actions = list(reversed(BhvSetPlay.Decision(agent)))
         for i in actions:
             agent.add_action(i)

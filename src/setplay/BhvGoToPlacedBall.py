@@ -41,7 +41,7 @@ class BhvGoToPlacedBall:
         else:
             # body dir is not right
             if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 1.5:
-                actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall().execute(agent)))
+                actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
             # dash to ball
             else:
                 actions.append(PlayerAction(dash=Dash(dash_power)))

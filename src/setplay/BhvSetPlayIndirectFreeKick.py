@@ -107,7 +107,7 @@ class BhvSetPlayIndirectFreeKick:
         return actions
         #agent.add_say_message(BallMessage(agent.effector().queued_next_ball_pos(), agent.effector().queued_next_ball_vel())) #TODO
 
-    def do_kick_wait(self, agent: IAgent):
+    def do_kick_wait(agent: IAgent):
         wm = agent.wm
         actions = []
         face_point = Vector2D(50.0, 0.0)
@@ -125,7 +125,7 @@ class BhvSetPlayIndirectFreeKick:
 
         return actions
 
-    def do_kick_to_shooter(self, agent: IAgent):
+    def do_kick_to_shooter(agent: IAgent):
         wm = agent.wm
         actions = []
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
@@ -175,7 +175,7 @@ class BhvSetPlayIndirectFreeKick:
         actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), ball_speed)))
         return actions
 
-    def get_avoid_circle_point(self, agent: IAgent, point: Vector2D):
+    def get_avoid_circle_point(agent: IAgent, point: Vector2D):
         SP = agent.serverParams
         wm = agent.wm
         
@@ -198,7 +198,7 @@ class BhvSetPlayIndirectFreeKick:
         from src.setplay.BhvSetPlay import BhvSetPlay
         return BhvSetPlay.get_avoid_circle_point(wm, point)
 
-    def do_offense_move(self, agent: IAgent):
+    def do_offense_move(agent: IAgent):
         wm = agent.wm
         actions = []
         target_point = Strategy.get_home_pos(agent, wm.myself.uniform_number)
@@ -233,7 +233,7 @@ class BhvSetPlayIndirectFreeKick:
         
         return actions
 
-    def do_defense_move(self, agent: IAgent):
+    def do_defense_move(agent: IAgent):
         actions = []
         SP = agent.serverParams
         wm = agent.wm

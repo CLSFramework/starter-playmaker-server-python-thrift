@@ -99,7 +99,7 @@ class BhvSetPlayGoalKick:
     def do_pass(agent:IAgent):
         return Pass.Decision(agent)
 
-    def do_intercept(self, agent:IAgent):
+    def do_intercept(agent:IAgent):
         wm = agent.wm
         actions = []
         

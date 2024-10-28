@@ -15,7 +15,7 @@ class BhvSetPlayKickOff:
         wm = agent.wm
         teammates = Tools.TeammatesFromBall(agent)
 
-        if not teammates or teammates[0].position.dist_from_self > wm.myself.dist_from_ball:
+        if not teammates or teammates[0].dist_from_self > wm.myself.dist_from_ball:
             return BhvSetPlayKickOff.do_kick(agent)
         else:
             return BhvSetPlayKickOff.do_move(agent)
@@ -42,7 +42,6 @@ class BhvSetPlayKickOff:
         # Teammate not found
         if not Tools.TeammatesFromSelf(agent):
             target_point.assign(agent.serverParams.pitch_half_length, (-1 + 2 * (wm.cycle % 2)) * 0.8 * agent.serverParams.goal_width / 2)
-
         else:
             teammate = Tools.TeammatesFromSelf(agent)[0]
             dist = teammate.dist_from_self
@@ -51,7 +50,8 @@ class BhvSetPlayKickOff:
                 # Too far
                 target_point.assign(agent.serverParams.pitch_half_length, (-1 + 2 * (wm.cycle % 2)) * 0.8 * agent.serverParams.goal_width)
             else:
-                target_point = teammate.inertia_final_point
+                target_point = Vector2D(teammate.inertia_final_point.x, teammate.inertia_final_point.y)
+                #target_point = teammate.inertia_final_point
                 ball_speed = min(max_ball_speed,
                                  Tools.calc_first_term_geom_series_last(1.8, dist, agent.serverParams.ball_decay))
 
@@ -105,7 +105,7 @@ class BhvSetPlayKickOff:
         actions = []
         target = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target.x, target.y)
-        target_point.x = min(-0.5, target_point.x())
+        target_point.set_x(min(-0.5, target_point.x()))
         from src.setplay.BhvSetPlay import BhvSetPlay
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         dist_thr = wm.ball.dist_from_self * 0.07
