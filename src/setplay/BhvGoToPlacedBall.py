@@ -33,10 +33,10 @@ class BhvGoToPlacedBall:
             dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         else:
             dash_speed = agent.playerTypes[wm.myself.id].player_size
-            dash_power = Tools.GetDashPowerToKeepSpeed(agent, dash_speed, wm.myself.effort)
+            dash_power = Tools.GetDashPowerToKeepSpeed(agent, dash_speed, wm.myself.effort) #DEBUG NEEDED
         # it is necessary to go to sub target point
         if abs(angle_diff) > dir_margin:
-            actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(sub_target, 0.1, dash_power, dash_speed)))
+            actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(sub_target.x(), sub_target.y()), 0.1, 50)))
         # dir diff is small. go to ball
         else:
             # body dir is not right

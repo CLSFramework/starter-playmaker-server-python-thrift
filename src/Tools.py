@@ -290,7 +290,7 @@ class Tools:
     
     def GetTeammateNearestToSelf(agent: IAgent, with_goalie: bool) -> Player:
         nearest_dist = 1000000.0
-        nearest_tm
+        nearest_tm = None
         for i in agent.wm.teammates:
             if i.uniform_number == agent.wm.myself.uniform_number:
                 continue
@@ -304,7 +304,7 @@ class Tools:
     
     def GetOpponentNearestToSelf(agent: IAgent) -> Player:
         nearest_dist = 1000000.0
-        nearest_opp
+        nearest_opp = None
         for i in agent.wm.opponents:
             dist = i.dist_from_self
             if dist < nearest_dist:

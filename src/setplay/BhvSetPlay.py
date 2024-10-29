@@ -56,7 +56,7 @@ class BhvSetPlay:
         if wm.is_our_set_play:
             return BhvSetPlayFreeKick.Decision(agent)
         else:
-            BhvSetPlay.doBasicTheirSetPlayMove(agent)
+            return BhvSetPlay.doBasicTheirSetPlayMove(agent)
 
         return []
 
@@ -137,12 +137,26 @@ class BhvSetPlay:
 
     def is_kicker(agent: IAgent):
         wm = agent.wm
+        min_dist = 10000.0
+        unum = 0
+        ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
+        for i in range(2, 12):
+            h_p:RpcVector2D = Strategy.get_home_pos(agent, i)
+            home_pos = Vector2D(h_p.x, h_p.y)
+            if(home_pos.dist(ball_position) < min_dist):
+                min_dist = home_pos.dist(ball_position)
+                unum = i
+        if wm.myself.uniform_number == unum:
+            return True
+        return False   
+        '''teammates_from_ball = Tools.TeammatesFromBall(agent)
+        wm = agent.wm
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         if wm.game_mode_type == GameModeType.GoalieCatch_ and wm.game_mode_side == wm.our_side and not wm.myself.is_goalie:
             return False
         kicker_unum = 0
         min_dist2 = 100000.0
-        second_kicker_unum = 100000.0
+        second_kicker_unum = 0
         second_min_dist2 = 100000.0
         for unum in range(1, 12):
             if unum == wm.our_goalie_uniform_number:
@@ -162,16 +176,18 @@ class BhvSetPlay:
         kicker = None
         second_kicker = None
         if kicker_unum != 0:
+            print ('unum', kicker_unum)
             kicker = wm.teammates[kicker_unum]
         if second_kicker_unum != 0:
             second_kicker = wm.teammates[second_kicker_unum]
         if not kicker:
-            if Tools.TeammatesFromBall(agent) and Tools.TeammatesFromBall(agent)[0].dist_from_ball < wm.ball.dist_from_self * 0.9:
+            if teammates_from_ball and teammates_from_ball[0].dist_from_ball < wm.ball.dist_from_self * 0.9:
                 return False
 
             return True
+        print('kicker unum: ', kicker.uniform_number)
+        print('second is_kicker', second_kicker.uniform_number)
         if kicker and second_kicker and (kicker.uniform_number == wm.myself.uniform_number or second_kicker.uniform_number == wm.myself.uniform_number):
-            teammates_from_ball = Tools.TeammatesFromBall(agent)
             if math.sqrt(min_dist2) < math.sqrt(second_min_dist2) * 0.95:
                 return kicker.uniform_number == wm.myself.uniform_number
             elif kicker.dist_from_ball < second_kicker.dist_from_ball * 0.95:
@@ -183,7 +199,7 @@ class BhvSetPlay:
                 return False
             else:
                 return True
-        return kicker.uniform_number == wm.myself.uniform_number
+        return kicker.uniform_number == wm.myself.uniform_number'''
 
     def is_delaying_tactics_situation(agent: IAgent):
         wm = agent.wm
