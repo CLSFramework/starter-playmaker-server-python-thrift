@@ -234,7 +234,7 @@ class BhvSetPlay:
                 target_point += ball_to_target.set_length_vector(11.0)
                 
         if wm.game_mode_type == GameModeType.KickOff_ and agent.serverParams.kickoff_offside:
-            target_point.set_x(min(-1.0e-5, target_point.x))
+            target_point.set_x(min(-1.0e-5, target_point.x()))
 
         adjusted_point = BhvSetPlay.get_avoid_circle_point(wm, target_point,agent)
         dist_thr = wm.ball.dist_from_self * 0.1

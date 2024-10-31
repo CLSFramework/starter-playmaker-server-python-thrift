@@ -21,22 +21,22 @@ class BhvSetPlayGoalKick:
             return BhvSetPlayGoalKick.do_move(agent)
 
     def do_kick(agent: IAgent):
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+        
         actions = []
-        if BhvSetPlayGoalKick.do_second_kick(agent):
-            return
+        actions += BhvSetPlayGoalKick.do_second_kick(agent)
         
-        if BhvSetPlayGoalKick.go_to_placed_ball(agent):
-            print(f"{__file__}: (doKick) go to ball")
-            return
+        actions += BhvGoToPlacedBall.Decision(agent)
+
+        wait = BhvSetPlayGoalKick.do_kick_wait(agent)
+        if wait != []:
+            actions += wait
+            return actions
         
-        if BhvSetPlayGoalKick.do_kick_wait(agent):
-            return
+        actions += BhvSetPlayGoalKick.do_pass(agent)
         
-        if BhvSetPlayGoalKick.do_pass(agent):
-            return
+        actions += BhvSetPlayGoalKick.do_kick_to_far_side(agent)
         
-        if BhvSetPlayGoalKick.do_kick_to_far_side(agent):
-            return
         wm = agent.wm
         real_set_play_count = wm.cycle - agent.wm.last_set_play_start_time
         if real_set_play_count <= agent.serverParams.drop_ball_time - 10:
@@ -68,7 +68,7 @@ class BhvSetPlayGoalKick:
         
         return actions
 
-    def do_kick_wait(self, agent:IAgent):
+    def do_kick_wait(agent:IAgent):
         wm = agent.wm
         actions = []
         real_set_play_count = wm.cycle - wm.last_set_play_start_time
@@ -78,23 +78,28 @@ class BhvSetPlayGoalKick:
         from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_delaying_tactics_situation(agent):
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
         
         if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 3.0:
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
         
         if wm.set_play_count <= 6:
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
 
         if wm.set_play_count <= 30 and Tools.TeammatesFromSelf(agent).length() == 0:
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
         
         if wm.set_play_count >= 15 and wm.see_time == wm.cycle and wm.myself.stamina > agent.serverParams.stamina_max:
             return []
         
         if wm.set_play_count <= 3 or wm.see_time != wm.cycle or wm.myself.stamina < agent.serverParams.stamina_max * 0.9:
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
             
-        return actions
+        return []
 
     def do_pass(agent:IAgent):
         return Pass.Decision(agent)

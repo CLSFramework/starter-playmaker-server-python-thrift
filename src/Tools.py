@@ -312,15 +312,14 @@ class Tools:
                 nearest_opp = i
         return nearest_opp
     
-    def GetTeammateNearestTo(agent: IAgent, point: RpcVector2D) -> Player:
-        point_vec = Vector2D(point.x, point.y)
+    def GetTeammateNearestTo(agent: IAgent, point: Vector2D) -> Player:
         nearest_dist = 1000000.0
         nearest_tm = None
         for i in agent.wm.teammates:
             if i.uniform_number == agent.wm.myself.uniform_number:
                 continue
             i_pos = Vector2D(i.position.x, i.position.y)
-            dist = i_pos.dist(point_vec)
+            dist = i_pos.dist(point)
             if dist < nearest_dist:
                 nearest_dist = dist
                 nearest_tm = i
