@@ -65,7 +65,7 @@ class BhvSetPlayKickIn:
         # Clear
         # Turn to ball
         if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 1.5:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
 
         # Advance ball
@@ -103,14 +103,14 @@ class BhvSetPlayKickIn:
             return actions
 
         if wm.set_play_count <= 3:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
 
         if wm.set_play_count >= 15 and wm.see_time == wm.cycle and wm.myself.stamina > agent.serverParams.stamina_max * 0.6:
             return []
 
         if wm.see_time != wm.cycle or wm.myself.stamina < agent.serverParams.stamina_max * 0.9:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
 
         return actions
@@ -157,7 +157,7 @@ class BhvSetPlayKickIn:
         if kicker_ball_dist > 1.0:
             actions.append(PlayerAction(turn=Turn(120)))
         else:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
         my_inertia = Tools.inertia_final_point(agent.PlayerTypes[wm.myself.id], self_position, self_velocity)

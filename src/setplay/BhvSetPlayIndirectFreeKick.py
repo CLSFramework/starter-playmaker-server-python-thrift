@@ -278,6 +278,6 @@ class BhvSetPlayIndirectFreeKick:
 
                 dist_thr = 0.05
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(adjusted_point.x(), adjusted_point.y(), dist_thr, dash_power))))
-        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
 
         return actions

@@ -30,7 +30,7 @@ class BhvPrepareSetPlayKick:
                 moment = AngleDeg(agent.serverParams.visible_angle)
                 actions.append(PlayerAction(turn=Turn(moment)))
             else:
-                actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+                actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
 
             self.s_rest_wait_cycle -= 1
 

@@ -39,5 +39,5 @@ class BhvBasicMove:
         dist_thr = max(dist_thr, 1.0)
         
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(home_pos, 0, dash_power)))
-        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
         return actions

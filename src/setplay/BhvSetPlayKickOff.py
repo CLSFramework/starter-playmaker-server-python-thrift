@@ -112,6 +112,6 @@ class BhvSetPlayKickOff:
         if dist_thr < 1.0:
             dist_thr = 1.0
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(target_point.x(), target_point.y()), dist_thr, dash_power)))
-        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
         
         return actions

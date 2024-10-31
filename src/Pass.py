@@ -10,7 +10,7 @@ class Pass:
     def __init__(self):
         pass
 
-    def Decision(agent: IAgent):
+    def Decision(agent: IAgent) -> PlayerAction:
         
         wm = agent.wm
         target = []
