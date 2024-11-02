@@ -28,7 +28,6 @@ class BhvSetPlayFreeKick:
         from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
         # go to the ball position
         actions += BhvGoToPlacedBall(0.0).Decision(agent)
-        print(actions)
         wait = BhvSetPlayFreeKick.doKickWait(agent)
         if wait != []:
             actions += wait

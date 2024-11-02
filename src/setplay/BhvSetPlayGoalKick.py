@@ -26,7 +26,7 @@ class BhvSetPlayGoalKick:
         actions = []
         actions += BhvSetPlayGoalKick.do_second_kick(agent)
         
-        actions += BhvGoToPlacedBall.Decision(agent)
+        actions += BhvGoToPlacedBall(0.0).Decision(agent)
 
         wait = BhvSetPlayGoalKick.do_kick_wait(agent)
         if wait != []:
@@ -42,8 +42,7 @@ class BhvSetPlayGoalKick:
         if real_set_play_count <= agent.serverParams.drop_ball_time - 10:
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
-        actions += ClearBall.Decision(agent)
-        print(f"{__file__}: clear ball")
+        actions.append(ClearBall.Decision(agent))
         return actions
 
     def do_second_kick(agent:IAgent):
@@ -102,7 +101,7 @@ class BhvSetPlayGoalKick:
         return []
 
     def do_pass(agent:IAgent):
-        return Pass.Decision(agent)
+        return [Pass.Decision(agent)]
 
     def do_intercept(agent:IAgent):
         wm = agent.wm
@@ -147,7 +146,7 @@ class BhvSetPlayGoalKick:
             
             nearest_opp = Tools.GetOpponentNearestToSelf(agent)
             if nearest_opp and nearest_opp.dist_from_self < 3.0:
-                add_vec: Vector2D = ball_position - target_point()
+                add_vec = ball_position - target_point
                 add_vec.set_length(3.0)
 
                 time_val = wm.cycle % 60
@@ -176,7 +175,7 @@ class BhvSetPlayGoalKick:
         actions = []
         target_point = Vector2D(agent.serverParams.our_penalty_area_line_x - 5.0, agent.serverParams.penalty_area_half_width)
         if wm.ball.position.y > 0.0:
-            target_point.y *= -1.0
+            target_point.set_y( target_point.y() * -1.0)
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         ball_move_dist = ball_position.dist(target_point)
         ball_first_speed = Tools.calc_first_term_geom_series_last(0.7, ball_move_dist, agent.serverParams.ball_decay)
