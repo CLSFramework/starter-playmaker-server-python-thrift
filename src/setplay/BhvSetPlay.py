@@ -19,7 +19,7 @@ class BhvSetPlay:
         wm = agent.wm
         if wm.myself.is_goalie:
             if wm.game_mode_type != GameModeType.BackPass_ and wm.game_mode_type != GameModeType.IndFreeKick_:
-                return BhvSetPlayGoalKick.Decision(agent)
+                return BhvSetPlayGoalKick.Decision(agent) #TODO GoalieFreeKick
             else:
                 return BhvSetPlayIndirectFreeKick.Decision(agent)
             return []

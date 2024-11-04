@@ -39,7 +39,7 @@ class BhvSetPlayIndirectFreeKick:
         # go to ball
         actions = []
         from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
-        actions += BhvGoToPlacedBall.Decision(agent=agent)
+        actions += BhvGoToPlacedBall(0.0).Decision(agent)
 
         # wait
         actions += BhvSetPlayIndirectFreeKick.do_kick_wait(agent)
@@ -214,7 +214,7 @@ class BhvSetPlayIndirectFreeKick:
             target_point_vector2d.set_x( min(wm.offside_line_x - 1.0, target_point_vector2d.x()))
 
         dash_power = 50
-        dash_power = wm.myself.get_safety_dash_power()
+        dash_power = wm.myself.get_safety_dash_power
 
 
         dist_thr = wm.ball.dist_from_self * 0.07
