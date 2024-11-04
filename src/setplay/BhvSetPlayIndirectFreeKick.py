@@ -207,8 +207,8 @@ class BhvSetPlayIndirectFreeKick:
 
         nearest_dist = 1000.0
         
-        teammate = Tools.GetTeammateNearestTo(agent, target_point)
-        teammate_pos = Vector2D(teammate.posicion.x, teammate.position.y)
+        teammate = Tools.GetTeammateNearestTo(agent, Vector2D(target_point.x, target_point.y))
+        teammate_pos = Vector2D(teammate.position.x, teammate.position.y)
         if nearest_dist < 2.5:
             target_point_vector2d += (target_point_vector2d - teammate_pos).set_length_vector(2.5)
             target_point_vector2d.set_x( min(wm.offside_line_x - 1.0, target_point_vector2d.x()))

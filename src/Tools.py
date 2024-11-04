@@ -325,7 +325,7 @@ class Tools:
                 nearest_tm = i
         return nearest_tm
     
-    def GetOpponentNearestTo(agent: IAgent, point: RpcVector2D) -> Player:
+    def GetOpponentNearestTo(agent: IAgent, point: Vector2D) -> Player:
         point_vec = Vector2D(point.x, point.y)
         nearest_dist = 1000000.0
         nearest_opp = None
