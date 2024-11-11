@@ -9403,6 +9403,86 @@ class HeliosPenalty(object):
         return not (self == other)
 
 
+class bhv_doForceKick(object):
+
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('bhv_doForceKick')
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
+class bhv_doHeardPassRecieve(object):
+
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('bhv_doHeardPassRecieve')
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
 class HeliosCommunicaion(object):
 
 
@@ -9425,6 +9505,46 @@ class HeliosCommunicaion(object):
             oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin('HeliosCommunicaion')
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
+class bhv_goalieFreeKick(object):
+
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            return
+        oprot.writeStructBegin('bhv_goalieFreeKick')
         oprot.writeFieldStop()
         oprot.writeStructEnd()
 
@@ -9510,11 +9630,14 @@ class PlayerAction(object):
      - helios_set_play
      - helios_penalty
      - helios_communication
+     - bhv_do_force_kick
+     - bhv_do_heard_pass_recieve
+     - bhv_goalie_free_kick
 
     """
 
 
-    def __init__(self, dash=None, turn=None, kick=None, tackle=None, catch_action=None, move=None, turn_neck=None, change_view=None, say=None, point_to=None, point_to_of=None, attention_to=None, attention_to_of=None, log=None, debug_client=None, body_go_to_point=None, body_smart_kick=None, bhv_before_kick_off=None, bhv_body_neck_to_ball=None, bhv_body_neck_to_point=None, bhv_emergency=None, bhv_go_to_point_look_ball=None, bhv_neck_body_to_ball=None, bhv_neck_body_to_point=None, bhv_scan_field=None, body_advance_ball=None, body_clear_ball=None, body_dribble=None, body_go_to_point_dodge=None, body_hold_ball=None, body_intercept=None, body_kick_one_step=None, body_stop_ball=None, body_stop_dash=None, body_tackle_to_point=None, body_turn_to_angle=None, body_turn_to_ball=None, body_turn_to_point=None, focus_move_to_point=None, focus_reset=None, neck_scan_field=None, neck_scan_players=None, neck_turn_to_ball_and_player=None, neck_turn_to_ball_or_scan=None, neck_turn_to_ball=None, neck_turn_to_goalie_or_scan=None, neck_turn_to_low_conf_teammate=None, neck_turn_to_player_or_scan=None, neck_turn_to_point=None, neck_turn_to_relative=None, view_change_width=None, view_normal=None, view_synch=None, view_wide=None, helios_goalie=None, helios_goalie_move=None, helios_goalie_kick=None, helios_shoot=None, helios_chain_action=None, helios_basic_offensive=None, helios_basic_move=None, helios_set_play=None, helios_penalty=None, helios_communication=None,):
+    def __init__(self, dash=None, turn=None, kick=None, tackle=None, catch_action=None, move=None, turn_neck=None, change_view=None, say=None, point_to=None, point_to_of=None, attention_to=None, attention_to_of=None, log=None, debug_client=None, body_go_to_point=None, body_smart_kick=None, bhv_before_kick_off=None, bhv_body_neck_to_ball=None, bhv_body_neck_to_point=None, bhv_emergency=None, bhv_go_to_point_look_ball=None, bhv_neck_body_to_ball=None, bhv_neck_body_to_point=None, bhv_scan_field=None, body_advance_ball=None, body_clear_ball=None, body_dribble=None, body_go_to_point_dodge=None, body_hold_ball=None, body_intercept=None, body_kick_one_step=None, body_stop_ball=None, body_stop_dash=None, body_tackle_to_point=None, body_turn_to_angle=None, body_turn_to_ball=None, body_turn_to_point=None, focus_move_to_point=None, focus_reset=None, neck_scan_field=None, neck_scan_players=None, neck_turn_to_ball_and_player=None, neck_turn_to_ball_or_scan=None, neck_turn_to_ball=None, neck_turn_to_goalie_or_scan=None, neck_turn_to_low_conf_teammate=None, neck_turn_to_player_or_scan=None, neck_turn_to_point=None, neck_turn_to_relative=None, view_change_width=None, view_normal=None, view_synch=None, view_wide=None, helios_goalie=None, helios_goalie_move=None, helios_goalie_kick=None, helios_shoot=None, helios_chain_action=None, helios_basic_offensive=None, helios_basic_move=None, helios_set_play=None, helios_penalty=None, helios_communication=None, bhv_do_force_kick=None, bhv_do_heard_pass_recieve=None, bhv_goalie_free_kick=None,):
         self.dash = dash
         self.turn = turn
         self.kick = kick
@@ -9579,6 +9702,9 @@ class PlayerAction(object):
         self.helios_set_play = helios_set_play
         self.helios_penalty = helios_penalty
         self.helios_communication = helios_communication
+        self.bhv_do_force_kick = bhv_do_force_kick
+        self.bhv_do_heard_pass_recieve = bhv_do_heard_pass_recieve
+        self.bhv_goalie_free_kick = bhv_goalie_free_kick
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -9973,6 +10099,24 @@ class PlayerAction(object):
                     self.helios_communication.read(iprot)
                 else:
                     iprot.skip(ftype)
+            elif fid == 65:
+                if ftype == TType.STRUCT:
+                    self.bhv_do_force_kick = bhv_doForceKick()
+                    self.bhv_do_force_kick.read(iprot)
+                else:
+                    iprot.skip(ftype)
+            elif fid == 66:
+                if ftype == TType.STRUCT:
+                    self.bhv_do_heard_pass_recieve = bhv_doHeardPassRecieve()
+                    self.bhv_do_heard_pass_recieve.read(iprot)
+                else:
+                    iprot.skip(ftype)
+            elif fid == 67:
+                if ftype == TType.STRUCT:
+                    self.bhv_goalie_free_kick = bhv_goalieFreeKick()
+                    self.bhv_goalie_free_kick.read(iprot)
+                else:
+                    iprot.skip(ftype)
             else:
                 iprot.skip(ftype)
             iprot.readFieldEnd()
@@ -10238,6 +10382,18 @@ class PlayerAction(object):
         if self.helios_communication is not None:
             oprot.writeFieldBegin('helios_communication', TType.STRUCT, 64)
             self.helios_communication.write(oprot)
+            oprot.writeFieldEnd()
+        if self.bhv_do_force_kick is not None:
+            oprot.writeFieldBegin('bhv_do_force_kick', TType.STRUCT, 65)
+            self.bhv_do_force_kick.write(oprot)
+            oprot.writeFieldEnd()
+        if self.bhv_do_heard_pass_recieve is not None:
+            oprot.writeFieldBegin('bhv_do_heard_pass_recieve', TType.STRUCT, 66)
+            self.bhv_do_heard_pass_recieve.write(oprot)
+            oprot.writeFieldEnd()
+        if self.bhv_goalie_free_kick is not None:
+            oprot.writeFieldBegin('bhv_goalie_free_kick', TType.STRUCT, 67)
+            self.bhv_goalie_free_kick.write(oprot)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -15352,8 +15508,17 @@ HeliosSetPlay.thrift_spec = (
 all_structs.append(HeliosPenalty)
 HeliosPenalty.thrift_spec = (
 )
+all_structs.append(bhv_doForceKick)
+bhv_doForceKick.thrift_spec = (
+)
+all_structs.append(bhv_doHeardPassRecieve)
+bhv_doHeardPassRecieve.thrift_spec = (
+)
 all_structs.append(HeliosCommunicaion)
 HeliosCommunicaion.thrift_spec = (
+)
+all_structs.append(bhv_goalieFreeKick)
+bhv_goalieFreeKick.thrift_spec = (
 )
 all_structs.append(PlayerAction)
 PlayerAction.thrift_spec = (
@@ -15422,6 +15587,9 @@ PlayerAction.thrift_spec = (
     (62, TType.STRUCT, 'helios_set_play', [HeliosSetPlay, None], None, ),  # 62
     (63, TType.STRUCT, 'helios_penalty', [HeliosPenalty, None], None, ),  # 63
     (64, TType.STRUCT, 'helios_communication', [HeliosCommunicaion, None], None, ),  # 64
+    (65, TType.STRUCT, 'bhv_do_force_kick', [bhv_doForceKick, None], None, ),  # 65
+    (66, TType.STRUCT, 'bhv_do_heard_pass_recieve', [bhv_doHeardPassRecieve, None], None, ),  # 66
+    (67, TType.STRUCT, 'bhv_goalie_free_kick', [bhv_goalieFreeKick, None], None, ),  # 67
 )
 all_structs.append(PlayerActions)
 PlayerActions.thrift_spec = (

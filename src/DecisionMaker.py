@@ -29,7 +29,11 @@ class DecisionMaker(IDecisionMaker):
                     for i in action_queue:
                         agent.add_action(i)
             else:
-                agent.add_action(PlayerAction(helios_goalie=HeliosGoalie()))
+                SetPlayDecisionMaker.make_decision(agent, agent.wm)
+                '''if agent.wm.game_mode_type != GameModeType.BackPass_ and agent.wm.game_mode_type != GameModeType.IndFreeKick_:
+                    SetPlayDecisionMaker.make_decision(agent, agent.wm)
+                else:
+                    agent.add_action(PlayerAction(helios_goalie=HeliosGoalie()))'''
         else:
             if agent.wm.game_mode_type == GameModeType.PlayOn:
                 self.playOnDecisionMaker.make_decision(agent)

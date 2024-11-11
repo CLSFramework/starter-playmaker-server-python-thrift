@@ -768,7 +768,13 @@ struct HeliosSetPlay {}
 
 struct HeliosPenalty {}
 
+struct bhv_doForceKick {}
+
+struct bhv_doHeardPassRecieve {}
+
 struct HeliosCommunicaion {}
+
+struct bhv_goalieFreeKick {}
 
 struct PlayerAction {
   1: optional Dash dash,
@@ -834,7 +840,10 @@ struct PlayerAction {
   61: optional HeliosBasicMove helios_basic_move,
   62: optional HeliosSetPlay helios_set_play,
   63: optional HeliosPenalty helios_penalty,
-  64: optional HeliosCommunicaion helios_communication
+  64: optional HeliosCommunicaion helios_communication,
+  65: optional bhv_doForceKick bhv_do_force_kick,
+  66: optional bhv_doHeardPassRecieve bhv_do_heard_pass_recieve,
+  67: optional bhv_goalieFreeKick bhv_goalie_free_kick
 }
 
 struct PlayerActions {

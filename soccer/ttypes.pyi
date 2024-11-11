@@ -920,13 +920,28 @@ class HeliosPenalty(object):
         pass
     pass
 
+class bhv_doForceKick(object):
+    def __init__(self, ):
+        pass
+    pass
+
+class bhv_doHeardPassRecieve(object):
+    def __init__(self, ):
+        pass
+    pass
+
 class HeliosCommunicaion(object):
     def __init__(self, ):
         pass
     pass
 
+class bhv_goalieFreeKick(object):
+    def __init__(self, ):
+        pass
+    pass
+
 class PlayerAction(object):
-    def __init__(self, dash: Dash = None, turn: Turn = None, kick: Kick = None, tackle: Tackle = None, catch_action: Catch = None, move: Move = None, turn_neck: TurnNeck = None, change_view: ChangeView = None, say: Say = None, point_to: PointTo = None, point_to_of: PointToOf = None, attention_to: AttentionTo = None, attention_to_of: AttentionToOf = None, log: Log = None, debug_client: DebugClient = None, body_go_to_point: Body_GoToPoint = None, body_smart_kick: Body_SmartKick = None, bhv_before_kick_off: Bhv_BeforeKickOff = None, bhv_body_neck_to_ball: Bhv_BodyNeckToBall = None, bhv_body_neck_to_point: Bhv_BodyNeckToPoint = None, bhv_emergency: Bhv_Emergency = None, bhv_go_to_point_look_ball: Bhv_GoToPointLookBall = None, bhv_neck_body_to_ball: Bhv_NeckBodyToBall = None, bhv_neck_body_to_point: Bhv_NeckBodyToPoint = None, bhv_scan_field: Bhv_ScanField = None, body_advance_ball: Body_AdvanceBall = None, body_clear_ball: Body_ClearBall = None, body_dribble: Body_Dribble = None, body_go_to_point_dodge: Body_GoToPointDodge = None, body_hold_ball: Body_HoldBall = None, body_intercept: Body_Intercept = None, body_kick_one_step: Body_KickOneStep = None, body_stop_ball: Body_StopBall = None, body_stop_dash: Body_StopDash = None, body_tackle_to_point: Body_TackleToPoint = None, body_turn_to_angle: Body_TurnToAngle = None, body_turn_to_ball: Body_TurnToBall = None, body_turn_to_point: Body_TurnToPoint = None, focus_move_to_point: Focus_MoveToPoint = None, focus_reset: Focus_Reset = None, neck_scan_field: Neck_ScanField = None, neck_scan_players: Neck_ScanPlayers = None, neck_turn_to_ball_and_player: Neck_TurnToBallAndPlayer = None, neck_turn_to_ball_or_scan: Neck_TurnToBallOrScan = None, neck_turn_to_ball: Neck_TurnToBall = None, neck_turn_to_goalie_or_scan: Neck_TurnToGoalieOrScan = None, neck_turn_to_low_conf_teammate: Neck_TurnToLowConfTeammate = None, neck_turn_to_player_or_scan: Neck_TurnToPlayerOrScan = None, neck_turn_to_point: Neck_TurnToPoint = None, neck_turn_to_relative: Neck_TurnToRelative = None, view_change_width: View_ChangeWidth = None, view_normal: View_Normal = None, view_synch: View_Synch = None, view_wide: View_Wide = None, helios_goalie: HeliosGoalie = None, helios_goalie_move: HeliosGoalieMove = None, helios_goalie_kick: HeliosGoalieKick = None, helios_shoot: HeliosShoot = None, helios_chain_action: HeliosChainAction = None, helios_basic_offensive: HeliosBasicOffensive = None, helios_basic_move: HeliosBasicMove = None, helios_set_play: HeliosSetPlay = None, helios_penalty: HeliosPenalty = None, helios_communication: HeliosCommunicaion = None):
+    def __init__(self, dash: Dash = None, turn: Turn = None, kick: Kick = None, tackle: Tackle = None, catch_action: Catch = None, move: Move = None, turn_neck: TurnNeck = None, change_view: ChangeView = None, say: Say = None, point_to: PointTo = None, point_to_of: PointToOf = None, attention_to: AttentionTo = None, attention_to_of: AttentionToOf = None, log: Log = None, debug_client: DebugClient = None, body_go_to_point: Body_GoToPoint = None, body_smart_kick: Body_SmartKick = None, bhv_before_kick_off: Bhv_BeforeKickOff = None, bhv_body_neck_to_ball: Bhv_BodyNeckToBall = None, bhv_body_neck_to_point: Bhv_BodyNeckToPoint = None, bhv_emergency: Bhv_Emergency = None, bhv_go_to_point_look_ball: Bhv_GoToPointLookBall = None, bhv_neck_body_to_ball: Bhv_NeckBodyToBall = None, bhv_neck_body_to_point: Bhv_NeckBodyToPoint = None, bhv_scan_field: Bhv_ScanField = None, body_advance_ball: Body_AdvanceBall = None, body_clear_ball: Body_ClearBall = None, body_dribble: Body_Dribble = None, body_go_to_point_dodge: Body_GoToPointDodge = None, body_hold_ball: Body_HoldBall = None, body_intercept: Body_Intercept = None, body_kick_one_step: Body_KickOneStep = None, body_stop_ball: Body_StopBall = None, body_stop_dash: Body_StopDash = None, body_tackle_to_point: Body_TackleToPoint = None, body_turn_to_angle: Body_TurnToAngle = None, body_turn_to_ball: Body_TurnToBall = None, body_turn_to_point: Body_TurnToPoint = None, focus_move_to_point: Focus_MoveToPoint = None, focus_reset: Focus_Reset = None, neck_scan_field: Neck_ScanField = None, neck_scan_players: Neck_ScanPlayers = None, neck_turn_to_ball_and_player: Neck_TurnToBallAndPlayer = None, neck_turn_to_ball_or_scan: Neck_TurnToBallOrScan = None, neck_turn_to_ball: Neck_TurnToBall = None, neck_turn_to_goalie_or_scan: Neck_TurnToGoalieOrScan = None, neck_turn_to_low_conf_teammate: Neck_TurnToLowConfTeammate = None, neck_turn_to_player_or_scan: Neck_TurnToPlayerOrScan = None, neck_turn_to_point: Neck_TurnToPoint = None, neck_turn_to_relative: Neck_TurnToRelative = None, view_change_width: View_ChangeWidth = None, view_normal: View_Normal = None, view_synch: View_Synch = None, view_wide: View_Wide = None, helios_goalie: HeliosGoalie = None, helios_goalie_move: HeliosGoalieMove = None, helios_goalie_kick: HeliosGoalieKick = None, helios_shoot: HeliosShoot = None, helios_chain_action: HeliosChainAction = None, helios_basic_offensive: HeliosBasicOffensive = None, helios_basic_move: HeliosBasicMove = None, helios_set_play: HeliosSetPlay = None, helios_penalty: HeliosPenalty = None, helios_communication: HeliosCommunicaion = None, bhv_do_force_kick: bhv_doForceKick = None, bhv_do_heard_pass_recieve: bhv_doHeardPassRecieve = None, bhv_goalie_free_kick: bhv_goalieFreeKick = None):
         pass
     dash: Dash
     turn: Turn
@@ -992,6 +1007,9 @@ class PlayerAction(object):
     helios_set_play: HeliosSetPlay
     helios_penalty: HeliosPenalty
     helios_communication: HeliosCommunicaion
+    bhv_do_force_kick: bhv_doForceKick
+    bhv_do_heard_pass_recieve: bhv_doHeardPassRecieve
+    bhv_goalie_free_kick: bhv_goalieFreeKick
 
 class PlayerActions(object):
     def __init__(self, actions: List[PlayerAction] = None):

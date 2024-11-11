@@ -19,7 +19,8 @@ class BhvSetPlay:
         wm = agent.wm
         if wm.myself.is_goalie:
             if wm.game_mode_type != GameModeType.BackPass_ and wm.game_mode_type != GameModeType.IndFreeKick_:
-                return BhvSetPlayGoalKick.Decision(agent) #TODO GoalieFreeKick
+                return [PlayerAction(bhv_goalie_free_kick=bhv_goalieFreeKick())]
+                #return BhvSetPlayGoalKick.Decision(agent) #TODO GoalieFreeKick
             else:
                 return BhvSetPlayIndirectFreeKick.Decision(agent)
             return []
@@ -140,8 +141,13 @@ class BhvSetPlay:
         min_dist = 10000.0
         unum = 0
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
-        for i in range(2, 12):
-            h_p:RpcVector2D = Strategy.get_home_pos(agent, i)
+        for i in range(1, 12):
+            if i == wm.our_goalie_uniform_number and wm.game_mode_type == GameModeType.GoalieCatch_:
+                h_p:RpcVector2D = wm.teammates[wm.our_goalie_uniform_number - 1].position
+            elif i == wm.our_goalie_uniform_number:
+                continue
+            else:
+                h_p:RpcVector2D = Strategy.get_home_pos(agent, i)
             home_pos = Vector2D(h_p.x, h_p.y)
             if(home_pos.dist(ball_position) < min_dist):
                 min_dist = home_pos.dist(ball_position)
