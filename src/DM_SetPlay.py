@@ -10,5 +10,7 @@ class SetPlayDecisionMaker(IDecisionMaker):
     def make_decision(agent: IAgent, wm: WorldModel):
         actions = list(reversed(BhvSetPlay.Decision(agent)))
         for i in actions:
+            if i == None:
+                continue
             agent.add_action(i)
         #agent.add_action(PlayerAction(helios_set_play=HeliosSetPlay()))

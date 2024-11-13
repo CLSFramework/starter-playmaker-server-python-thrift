@@ -13,4 +13,6 @@ class NoBallDecisionMaker(IDecisionMaker):
         # Queued actions are reversed and send here
         bhv_basic_move_actions = list(reversed(BhvBasicMove.Decision(agent)))
         for act in bhv_basic_move_actions:
+            if act == None:
+                continue
             agent.add_action(act)

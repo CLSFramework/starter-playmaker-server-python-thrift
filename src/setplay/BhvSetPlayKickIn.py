@@ -36,7 +36,7 @@ class BhvSetPlayKickIn:
         if wait != []:
             actions += wait
             return actions
-        print(wm.myself.uniform_number, 'Skipped 1')
+
         # Kick
         max_ball_speed = wm.myself.kick_rate * agent.serverParams.max_power
 
@@ -61,7 +61,7 @@ class BhvSetPlayKickIn:
                 ball_reach_step = math.ceil(calc_length_geom_series(ball_speed, ball_move_dist, agent.serverParams.ball_decay))
 
             ball_speed = min(ball_speed, max_ball_speed)
-            actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), ball_speed, True)))
+            actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), ball_speed)))
             return actions
 
         # Clear
@@ -84,7 +84,8 @@ class BhvSetPlayKickIn:
             target_point.set_y(target_point.y() * -1.0)
         
         # Enforce one step kick
-        actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), agent.serverParams.ball_speed_max, True)))
+        actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), agent.serverParams.ball_speed_max)))
+
         return actions
     
 
@@ -141,8 +142,8 @@ class BhvSetPlayKickIn:
                 else:
                     target_point += add_vec.rotated_vector(-90.0)
 
-                target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length()))
-                target_point.set_y (min(max(-agent.serverParams.pitch_half_width, target_point.y), agent.serverParams.pitch_half_width))
+                target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length))
+                target_point.set_y (min(max(-agent.serverParams.pitch_half_width, target_point.y()), agent.serverParams.pitch_half_width))
                 avoid_opponent = True
         from src.setplay.BhvSetPlay import BhvSetPlay
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)

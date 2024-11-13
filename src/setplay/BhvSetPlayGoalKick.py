@@ -87,7 +87,7 @@ class BhvSetPlayGoalKick:
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
 
-        if wm.set_play_count <= 30 and Tools.TeammatesFromSelf(agent).length() == 0:
+        if wm.set_play_count <= 30 and len(Tools.TeammatesFromSelf(agent)) == 0:
             actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
         

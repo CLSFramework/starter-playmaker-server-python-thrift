@@ -223,7 +223,7 @@ class BhvSetPlayIndirectFreeKick:
 
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(target_point_vector2d.x(), target_point_vector2d.y()), dist_thr, dash_power)))
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
-        turn_point = (RpcVector2D(agent.serverParams.pitch_half_length, 0) + ball_position) * 0.5
+        turn_point = (Vector2D(agent.serverParams.pitch_half_length, 0) + ball_position) * 0.5
         actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(turn_point.x(), turn_point.y()))))
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         if target_point.x > 36.0 and (self_position.dist(target_point) > max(ball_position.dist(target_point) * 0.2, dist_thr) + 6.0 or wm.myself.stamina < agent.serverParams.stamina_max * 0.7):

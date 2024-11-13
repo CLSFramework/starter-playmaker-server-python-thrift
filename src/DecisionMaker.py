@@ -27,6 +27,8 @@ class DecisionMaker(IDecisionMaker):
                 else:
                     action_queue = list(reversed(BhvGoalieBasicMove.Decision(agent)))
                     for i in action_queue:
+                        if i == None:
+                            continue
                         agent.add_action(i)
             else:
                 SetPlayDecisionMaker.make_decision(agent, agent.wm)

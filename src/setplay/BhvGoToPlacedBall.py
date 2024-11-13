@@ -44,6 +44,6 @@ class BhvGoToPlacedBall:
                 actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             # dash to ball
             else:
-                actions.append(PlayerAction(dash=Dash(dash_power)))
+                actions.append(PlayerAction(dash=Dash(dash_power, 0)))
                 
         return actions

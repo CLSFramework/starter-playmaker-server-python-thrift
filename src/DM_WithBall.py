@@ -20,6 +20,8 @@ class WithBallDecisionMaker(IDecisionMaker):
         basic_offensive_kick_actions = list(reversed(BhvBasicOffensiveKick.Decision(agent)))
         
         for act in basic_offensive_kick_actions:
+            if act == None:
+                continue
             agent.add_action(act)
         
         '''agent.add_action(PlayerAction(helios_chain_action=HeliosChainAction(lead_pass=True,
