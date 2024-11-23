@@ -74,10 +74,8 @@ class BhvPenaltyKick:
         actions = []
         goal_c = Vector2D(agent.serverParams.pitch_half_length, 0.0)
         opps = agent.wm.opponents
-        opp_goalie = None
-        for a in opps :
-            if a.uniform_number == agent.wm.their_goalie_uniform_number :
-                opp_goalie = a
+        
+        opp_goalie = Player(Tools().OpponentGoalie(agent))
         
         place_angle = 0.0
 
@@ -110,11 +108,8 @@ class BhvPenaltyKick:
             if wm.ball.pos_count > 0 :
                 actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
             '''else :
-                opps = agent.wm.opponents
-                opp_goalie = None
-                for a in opps :
-                    if a.uniform_number == agent.wm.their_goalie_uniform_number :
-                        opp_goalie = a
+                
+                opp_goalie = Player(Tools().OpponentGoalie(agent))
                 if opp_goalie :
                     agent.add_action(PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position)))
                     agent.add_log_text(LoggerLevel.TEAM, "neck to goalie")
@@ -144,22 +139,17 @@ class BhvPenaltyKick:
         
         # turn to the ball to get the maximal kick rate
         if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 0.3:
-            opps = agent.wm.opponents
-            opp_goalie = None
-            for a in opps :
-                if a.uniform_number == agent.wm.their_goalie_uniform_number :
-                    opp_goalie = a
+            
+            opp_goalie = Player(Tools().OpponentGoalie(agent))
             if opp_goalie :
                 actions.append((PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position))))
             else :
                 goal_c = Vector2D(agent.serverParams.pitch_half_length, 0.0)
                 actions.append((PlayerAction(neck_turn_to_point=Neck_TurnToPoint(RpcVector2D(goal_c.x(), goal_c.y())))))
                 return actions
-        opps = agent.wm.opponents
-        opp_goalie = None
-        for a in opps :
-            if a.uniform_number == agent.wm.their_goalie_uniform_number :                          
-                opp_goalie = a
+        
+        opp_goalie = Player(Tools().OpponentGoalie(agent))
+
         shoot_point = Vector2D(agent.serverParams.pitch_half_length, 0.0)
         if opp_goalie :
             shoot_point.y() = (agent.serverParams.goal_width / 2.0 )-1.0
@@ -206,11 +196,9 @@ class BhvPenaltyKick:
 
         penalty_abs_x = SP.their_penalty_area_line_x
 
-        opps = agent.wm.opponents
-        opp_goalie = None
-        for a in opps :
-            if a.uniform_number == agent.wm.their_goalie_uniform_number :                          
-                opp_goalie = a
+        
+        opp_goalie = Player(Tools().OpponentGoalie(agent))
+
         goalie_max_speed = 1.0
 
         my_abs_x = abs(wm.myself.position.x)
@@ -446,9 +434,9 @@ class BhvPenaltyKick:
             return result
         else:
             if ball_pos.x() > 0.0:
-                return Vector2D(min_x, goal_l.y)
+                return Vector2D(min_x, goal_l.y())
             elif ball_pos.x() < 0.0:
-                return Vector2D(min_x, goal_r.y)
+                return Vector2D(min_x, goal_r.y())
             else:
                 return Vector2D(min_x, 0.0)
 
@@ -494,25 +482,22 @@ class BhvPenaltyKick:
         return actions
 
     def getShootPos(agent: IAgent, point, first_speed):
+        # using listing method to pass the reference
         wm = agent.wm
         SP = agent.serverParams
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         if Vector2D(SP.pitch_half_length,0.0).dist2(ball_position) > 35.0 ** 2:
             # too far
             return False
-
-        opps = agent.wm.opponents
-        opp_goalie = None
-        for a in opps :
-            if a.uniform_number == agent.wm.their_goalie_uniform_number :                          
-                opp_goalie = a
-
+        
+        opp_goalie = Player(Tools().OpponentGoalie(agent))
+        
         if not opp_goalie:
             shot_c = Vector2D(SP.pitch_half_length,0.0)
             if point is not None:
-                point[0] = shot_c #TODO
+                point[0] = shot_c 
             if first_speed is not None:
-                first_speed[0] = SP.ball_speed_max #TODO
+                first_speed[0] = SP.ball_speed_max 
 
             # no goalie
             return True
@@ -548,14 +533,14 @@ class BhvPenaltyKick:
                     over_max = True
                     tmp_first_speed = SP.ball_speed_max
 
-                ball_pos = wm.ball.position
+                ball_pos = Vector2D(wm.ball.position)
                 ball_vel = Vector2D.polar2vector(tmp_first_speed, angle)
                 ball_pos += ball_vel
                 ball_vel *= SP.ball_decay
 
                 goalie_can_reach = False
 
-                cycle = 0.0
+                cycle = 0
                 while abs(ball_pos.x) < SP.pitch_half_length:
                     if goalie_next_pos.dist(ball_pos) < goalie_max_speed * cycle + goalie_dist_buf:
                         agent.add_log_text(LoggerLevel.TEAM,f" (getShootTarget) goalie can reach. cycle={cycle + 1.0} target=({target.x}, {target.y}) speed={tmp_first_speed}")
@@ -564,7 +549,7 @@ class BhvPenaltyKick:
 
                     ball_pos += ball_vel
                     ball_vel *= SP.ball_decay
-                    cycle += 1.0
+                    cycle += 1
 
                     if not goalie_can_reach:
                         agent.add_log_text(LoggerLevel.TEAM,f" (getShootTarget) goalie never reach. target=({target.x}, {target.y}) speed={tmp_first_speed}")

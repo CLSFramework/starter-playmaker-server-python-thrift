@@ -353,6 +353,11 @@ class Tools:
             return last_term
         return last_term * pow(inverse, math.log(tmp) / math.log(inverse))
     
+    def OpponentGoalie(agent: IAgent) -> Player:
+        for i in agent.wm.opponents:
+            if i.uniform_number == agent.wm.their_goalie_uniform_number : 
+                return i
+
     def TeammatesFromBall(agent: IAgent):
 
         tms = agent.wm.teammates
