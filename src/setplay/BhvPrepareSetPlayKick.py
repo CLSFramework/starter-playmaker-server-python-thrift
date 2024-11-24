@@ -1,7 +1,7 @@
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.angle_deg import AngleDeg
-from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+#from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 
 class BhvPrepareSetPlayKick:
 
@@ -13,7 +13,7 @@ class BhvPrepareSetPlayKick:
 
     def Decision(self, agent: IAgent) -> bool:
         actions = []
-        
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
         # Not reach the ball side
         actions += BhvGoToPlacedBall(self.M_ball_place_angle).Decision(agent)
 
@@ -30,7 +30,7 @@ class BhvPrepareSetPlayKick:
                 moment = AngleDeg(agent.serverParams.visible_angle)
                 actions.append(PlayerAction(turn=Turn(moment)))
             else:
-                actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+                actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
 
             self.s_rest_wait_cycle -= 1
 

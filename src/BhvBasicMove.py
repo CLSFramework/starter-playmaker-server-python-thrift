@@ -32,14 +32,12 @@ class BhvBasicMove:
         else:
             pass
             # Do defensive move like mark or block
-        
         home_pos = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         
         dash_power = Strategy.get_normal_dash_power(agent)
-        
         dist_thr = wm.ball.dist_from_self * 0.1
         dist_thr = max(dist_thr, 1.0)
         
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(home_pos, 0, dash_power)))
-        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
         return actions

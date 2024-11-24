@@ -1,7 +1,7 @@
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from src.ClearBall import ClearBall
 from src.Tools import Tools
 from src.BhvBasicOffensiveKick import BhvBasicOffensiveKick
@@ -14,36 +14,35 @@ class BhvSetPlayGoalKick:
         pass
     
     def Decision(agent:IAgent):
-        
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_kicker(agent):
             return BhvSetPlayGoalKick.do_kick(agent)
         else:
             return BhvSetPlayGoalKick.do_move(agent)
 
     def do_kick(agent: IAgent):
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+        
         actions = []
-        if BhvSetPlayGoalKick.do_second_kick(agent):
-            return
+        actions += BhvSetPlayGoalKick.do_second_kick(agent)
         
-        if BhvSetPlayGoalKick.go_to_placed_ball(agent):
-            print(f"{__file__}: (doKick) go to ball")
-            return
+        actions += BhvGoToPlacedBall(0.0).Decision(agent)
+
+        wait = BhvSetPlayGoalKick.do_kick_wait(agent)
+        if wait != []:
+            actions += wait
+            return actions
         
-        if BhvSetPlayGoalKick.do_kick_wait(agent):
-            return
+        actions += BhvSetPlayGoalKick.do_pass(agent)
         
-        if BhvSetPlayGoalKick.do_pass(agent):
-            return
+        actions += BhvSetPlayGoalKick.do_kick_to_far_side(agent)
         
-        if BhvSetPlayGoalKick.do_kick_to_far_side(agent):
-            return
         wm = agent.wm
         real_set_play_count = wm.cycle - agent.wm.last_set_play_start_time
         if real_set_play_count <= agent.serverParams.drop_ball_time - 10:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
-        actions += ClearBall.Decision(agent)
-        print(f"{__file__}: clear ball")
+        actions.append(ClearBall.Decision(agent))
         return actions
 
     def do_second_kick(agent:IAgent):
@@ -68,38 +67,43 @@ class BhvSetPlayGoalKick:
         
         return actions
 
-    def do_kick_wait(self, agent:IAgent):
+    def do_kick_wait(agent:IAgent):
         wm = agent.wm
         actions = []
         real_set_play_count = wm.cycle - wm.last_set_play_start_time
 
         if real_set_play_count >= agent.serverParams.drop_ball_time - 10:
             return []
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_delaying_tactics_situation(agent):
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
         
         if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 3.0:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
         
         if wm.set_play_count <= 6:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
 
-        if wm.set_play_count <= 30 and Tools.TeammatesFromSelf(agent).length() == 0:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        if wm.set_play_count <= 30 and len(Tools.TeammatesFromSelf(agent)) == 0:
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
         
         if wm.set_play_count >= 15 and wm.see_time == wm.cycle and wm.myself.stamina > agent.serverParams.stamina_max:
             return []
         
         if wm.set_play_count <= 3 or wm.see_time != wm.cycle or wm.myself.stamina < agent.serverParams.stamina_max * 0.9:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
+            return actions
             
-        return actions
+        return []
 
     def do_pass(agent:IAgent):
-        return Pass.Decision(agent)
+        return [Pass.Decision(agent)]
 
-    def do_intercept(self, agent:IAgent):
+    def do_intercept(agent:IAgent):
         wm = agent.wm
         actions = []
         
@@ -125,7 +129,7 @@ class BhvSetPlayGoalKick:
     def do_move(agent:IAgent):
         actions = []
         actions += BhvSetPlayGoalKick.do_intercept(agent)
-        
+        from src.setplay.BhvSetPlay import BhvSetPlay
         wm = agent.wm
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
@@ -133,16 +137,16 @@ class BhvSetPlayGoalKick:
 
         target_rpc = Strategy.get_home_pos(agent, wm.myself.uniform_number)
         target_point = Vector2D(target_rpc.x, target_rpc.y)
-        target_point.y() += wm.ball.position.y * 0.5
+        target_point.set_y(target_point.y() + wm.ball.position.y * 0.5)
 
         if abs(target_point.y()) > agent.serverParams.pitch_half_width - 1.0:
-            target_point.y() = (target_point.y() / abs(target_point.y())) * (agent.serverParams.pitch_half_width - 1.0)
+            target_point.set_y((target_point.y() / abs(target_point.y())) * (agent.serverParams.pitch_half_width - 1.0))
 
         if wm.myself.stamina > agent.serverParams.stamina_max * 0.9:
             
             nearest_opp = Tools.GetOpponentNearestToSelf(agent)
             if nearest_opp and nearest_opp.dist_from_self < 3.0:
-                add_vec: Vector2D = ball_position - target_point()
+                add_vec = ball_position - target_point
                 add_vec.set_length(3.0)
 
                 time_val = wm.cycle % 60
@@ -153,11 +157,11 @@ class BhvSetPlayGoalKick:
                 else:
                     target_point += add_vec.rotated_vector(-90.0)
 
-                target_point.x() = min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length)
-                target_point.y() = min(max(-agent.serverParams.pitch_half_width, target_point.y()), agent.serverParams.pitch_half_width)
+                target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length))
+                target_point.set_y(min(max(-agent.serverParams.pitch_half_width, target_point.y()), agent.serverParams.pitch_half_width))
 
         actions.append(PlayerAction(body_go_to_point=Body_GoToPoint(RpcVector2D(target_point.x(), target_point.y()), dist_thr, dash_power)))
-        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+        actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
         
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         if (self_position.dist(target_point) > ball_position.dist(target_point) * 0.2 + 6.0 or wm.myself.stamina < agent.serverParams.stamina_max * 0.7):
@@ -171,7 +175,7 @@ class BhvSetPlayGoalKick:
         actions = []
         target_point = Vector2D(agent.serverParams.our_penalty_area_line_x - 5.0, agent.serverParams.penalty_area_half_width)
         if wm.ball.position.y > 0.0:
-            target_point.y *= -1.0
+            target_point.set_y( target_point.y() * -1.0)
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
         ball_move_dist = ball_position.dist(target_point)
         ball_first_speed = Tools.calc_first_term_geom_series_last(0.7, ball_move_dist, agent.serverParams.ball_decay)

@@ -2,19 +2,21 @@ import math
 from src.IAgent import IAgent
 from soccer.ttypes import *
 from pyrusgeom.vector_2d import Vector2D
-from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
+#from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
 from src.Pass import Pass
 from src.Tools import Tools
 import math
 from pyrusgeom.soccer_math import *
-from src.setplay.BhvSetPlay import BhvSetPlay
+#from src.setplay.BhvSetPlay import BhvSetPlay
 from src.Strategy import Strategy
 class BhvSetPlayKickIn:
 
+    def __init__():
+        pass
     def Decision(agent: IAgent) -> bool:
-        agent.add_log_text(LoggerLevel.TEAM, f"{__file__}: Bhv_SetPlayKickIn")
+        from src.setplay.BhvSetPlay import BhvSetPlay
 
-        if BhvSetPlayKickIn.is_kicker(agent):
+        if BhvSetPlay.is_kicker(agent):
             return BhvSetPlayKickIn.do_kick(agent)
         else:
             return BhvSetPlayKickIn.do_move(agent)
@@ -22,25 +24,28 @@ class BhvSetPlayKickIn:
         return []
 
     def do_kick(agent: IAgent):
+        from src.setplay.BhvGoToPlacedBall import BhvGoToPlacedBall
         wm = agent.wm
         actions = []
         # Go to the kick position
         ball_place_angle = -90.0 if wm.ball.position.y > 0.0 else 90.0
-        actions += BhvGoToPlacedBall.Decision(ball_place_angle)
+        actions += BhvGoToPlacedBall(ball_place_angle).Decision(agent)
 
         # Wait
-        if BhvSetPlayKickIn.do_kick_wait(agent):
-            return []
+        wait = BhvSetPlayKickIn.do_kick_wait(agent)
+        if wait != []:
+            actions += wait
+            return actions
 
         # Kick
         max_ball_speed = wm.myself.kick_rate * agent.serverParams.max_power
 
         # Pass
-        actions += Pass.Decision(agent)
+        actions.append(Pass.Decision(agent))
 
         # Kick to the nearest teammate
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
-        receiver: Player = Tools.GetTeammateNearestTo(ball_position)
+        receiver: Player = Tools.GetTeammateNearestTo(agent, ball_position)
         if receiver and receiver.dist_from_ball < 10.0 and abs(receiver.position.x) < agent.serverParams.pitch_half_length and abs(receiver.position.y) < agent.serverParams.pitch_half_width:
 
             target_point = Vector2D(receiver.inertia_final_point.x, receiver.inertia_final_point.y)
@@ -62,7 +67,7 @@ class BhvSetPlayKickIn:
         # Clear
         # Turn to ball
         if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 1.5:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
 
         # Advance ball
@@ -80,6 +85,7 @@ class BhvSetPlayKickIn:
         
         # Enforce one step kick
         actions.append(PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(target_point.x(), target_point.y()), agent.serverParams.ball_speed_max)))
+
         return actions
     
 
@@ -90,7 +96,7 @@ class BhvSetPlayKickIn:
         actions = []
         if real_set_play_count >= agent.serverParams.drop_ball_time - 5:
             return []
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         if BhvSetPlay.is_delaying_tactics_situation(agent):
             actions.append(PlayerAction(body_turn_to_point=Body_TurnToPoint(RpcVector2D(0, 0))))
             return actions
@@ -100,19 +106,19 @@ class BhvSetPlayKickIn:
             return actions
 
         if wm.set_play_count <= 3:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
 
         if wm.set_play_count >= 15 and wm.see_time == wm.cycle and wm.myself.stamina > agent.serverParams.stamina_max * 0.6:
             return []
 
         if wm.see_time != wm.cycle or wm.myself.stamina < agent.serverParams.stamina_max * 0.9:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
             return actions
 
         return actions
 
-    def do_move(self, agent: IAgent):
+    def do_move(agent: IAgent):
         wm = agent.wm
         actions = []
         ball_position = Vector2D(wm.ball.position.x, wm.ball.position.y)
@@ -136,10 +142,10 @@ class BhvSetPlayKickIn:
                 else:
                     target_point += add_vec.rotated_vector(-90.0)
 
-                target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length()))
-                target_point.set_y (min(max(-agent.serverParams.pitch_half_width, target_point.y), agent.serverParams.pitch_half_width))
+                target_point.set_x(min(max(-agent.serverParams.pitch_half_length, target_point.x()), agent.serverParams.pitch_half_length))
+                target_point.set_y (min(max(-agent.serverParams.pitch_half_width, target_point.y()), agent.serverParams.pitch_half_width))
                 avoid_opponent = True
-
+        from src.setplay.BhvSetPlay import BhvSetPlay
         dash_power = BhvSetPlay.get_set_play_dash_power(agent)
         dist_thr = wm.ball.dist_from_self * 0.07
         dist_thr = max(dist_thr, 1.0)
@@ -154,10 +160,10 @@ class BhvSetPlayKickIn:
         if kicker_ball_dist > 1.0:
             actions.append(PlayerAction(turn=Turn(120)))
         else:
-            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall()))
+            actions.append(PlayerAction(body_turn_to_ball=Body_TurnToBall(1)))
         self_position = Vector2D(wm.myself.position.x, wm.myself.position.y)
         self_velocity = Vector2D(wm.myself.velocity.x, wm.myself.velocity.y)
-        my_inertia = Tools.inertia_final_point(agent.PlayerTypes[wm.myself.id], self_position, self_velocity)
+        my_inertia = Tools.inertia_final_point(agent.playerTypes[wm.myself.id], self_position, self_velocity)
         wait_dist_buf = (10.0 if avoid_opponent else ball_position.dist(target_point) * 0.2 + 6.0)
 
         if my_inertia.dist(target_point) > wait_dist_buf or wm.myself.stamina < agent.serverParams.stamina_max * 0.7:
