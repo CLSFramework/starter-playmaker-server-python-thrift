@@ -152,13 +152,13 @@ class BhvPenaltyKick:
 
         shoot_point = Vector2D(agent.serverParams.pitch_half_length, 0.0)
         if opp_goalie :
-            shoot_point.y() = (agent.serverParams.goal_width / 2.0 )-1.0
+            shoot_point.set_y((agent.serverParams.goal_width / 2.0 )-1.0)
             if abs(opp_goalie.position.y) > 0.5 : 
                 if opp_goalie.position.y > 0.0 :
-                    shoot_point.y() *= -1.0
+                    shoot_point.set_y(shoot_point.y() * -1.0)
             elif opp_goalie.body_direction_count < 2.0 :
                 if opp_goalie.body_direction > 0.0 :
-                    shoot_point.y() *= -1.0 
+                    shoot_point.set_y(shoot_point.y() * -1.0) 
         
         actions.append((PlayerAction(body_kick_one_step=Body_KickOneStep(RpcVector2D(shoot_point.x(), shoot_point.y()),agent.serverParams.ball_speed_max))))
 

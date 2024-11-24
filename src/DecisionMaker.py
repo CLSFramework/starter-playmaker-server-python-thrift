@@ -8,6 +8,7 @@ from src.BhvGoalieBasicMove import BhvGoalieBasicMove
 from pyrusgeom.rect_2d import Rect2D
 from pyrusgeom.vector_2d import Vector2D
 from pyrusgeom.size_2d import Size2D
+from src.BhvPenaltyKick import BhvPenaltyKick
 
 class DecisionMaker(IDecisionMaker):
     def __init__(self):
@@ -33,6 +34,8 @@ class DecisionMaker(IDecisionMaker):
             if agent.wm.game_mode_type == GameModeType.PlayOn:
                 self.playOnDecisionMaker.make_decision(agent)
             elif agent.wm.is_penalty_kick_mode:
-                agent.add_action(PlayerAction(helios_penalty=HeliosPenalty()))
+                action_queue = list(reversed(BhvPenaltyKick.Decision(agent)))
+                for i in action_queue:
+                    agent.add_action(i)
             else:
                 agent.add_action(PlayerAction(helios_set_play=HeliosSetPlay()))
