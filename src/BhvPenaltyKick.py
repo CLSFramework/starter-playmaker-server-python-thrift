@@ -20,41 +20,47 @@ class BhvPenaltyKick:
     def Decision(agent: IAgent):
         
         wm = agent.wm
+        actions = []
         state = wm.penalty_kick_state
         if wm.game_mode_type == GameModeType.PenaltySetup_:
             if state.current_taker_side == wm.our_side:
                 if state.is_kick_taker:
-                    return BhvPenaltyKick.doKickerSetup(agent)
+                    actions += BhvPenaltyKick.doKickerSetup(agent)
             else:
                 if wm.myself.is_goalie:
-                    return BhvPenaltyKick.doGoalieSetup(agent)
+                    actions += BhvPenaltyKick.doGoalieSetup(agent)
         elif wm.game_mode_type == GameModeType.PenaltyReady_:
             if state.current_taker_side == wm.our_side:
                 if state.is_kick_taker:
-                    return BhvPenaltyKick.doKickerReady(agent)
+                    actions += BhvPenaltyKick.doKickerReady(agent)
             else:
                 if wm.myself.is_goalie:
-                    return BhvPenaltyKick.doGoalieSetup(agent)
+                    actions += BhvPenaltyKick.doGoalieSetup(agent)
         elif wm.game_mode_type == GameModeType.PenaltyTaken_:
             if state.current_taker_side == wm.our_side:
                 if state.is_kick_taker:
-                    return BhvPenaltyKick.doKicker(agent)
+                    actions += BhvPenaltyKick.doKicker(agent)
             else:
                 if wm.myself.is_goalie:
-                    return BhvPenaltyKick.doGoalie(agent)
+                    actions += BhvPenaltyKick.doGoalie(agent)
         elif wm.game_mode_type == GameModeType.PenaltyScore_ or wm.game_mode_type == GameModeType.PenaltyMiss_:
             if state.current_taker_side == wm.our_side: #TODO check
                 if wm.myself.is_goalie:
-                    return BhvPenaltyKick.doGoalieSetup(agent)
+                    actions += BhvPenaltyKick.doGoalieSetup(agent)
         elif wm.game_mode_type == GameModeType.PenaltyOnfield_ or wm.game_mode_type == GameModeType.PenaltyFoul_:
             pass
         else:
-            return []
+            print("Current playmode is NOT a Penalty Shootout???")
+            return actions
 
         if wm.myself.is_goalie:
-            return BhvPenaltyKick.doGoalieWait(agent)
+            actions += BhvPenaltyKick.doGoalieWait(agent)
         else:
-            return BhvPenaltyKick.doKickerWait(agent)
+            actions += BhvPenaltyKick.doKickerWait(agent)
+        if state.is_kick_taker:
+            print(wm.myself.uniform_number)
+            print(actions)
+        return actions
 
     def doKickerWait(agent: IAgent):
         wm = agent.wm
@@ -75,11 +81,11 @@ class BhvPenaltyKick:
         goal_c = Vector2D(agent.serverParams.pitch_half_length, 0.0)
         opps = agent.wm.opponents
         
-        opp_goalie = Player(Tools().OpponentGoalie(agent))
+        opp_goalie = Tools.OpponentGoalie(agent)
         
         place_angle = 0.0
 
-        if not BhvGoToPlacedBall.Decision(place_angle) == []:
+        if not BhvGoToPlacedBall(place_angle).Decision(agent) == []:
             actions.append((PlayerAction(body_turn_to_point= Body_TurnToPoint(RpcVector2D(goal_c.x(), goal_c.y())))))
             if opp_goalie :
                 actions.append((PlayerAction(neck_turn_to_point= Neck_TurnToPoint(opp_goalie.position))))
@@ -148,7 +154,7 @@ class BhvPenaltyKick:
                 actions.append((PlayerAction(neck_turn_to_point=Neck_TurnToPoint(RpcVector2D(goal_c.x(), goal_c.y())))))
                 return actions
         
-        opp_goalie = Player(Tools().OpponentGoalie(agent))
+        opp_goalie = Player(Tools.OpponentGoalie(agent))
 
         shoot_point = Vector2D(agent.serverParams.pitch_half_length, 0.0)
         if opp_goalie :
@@ -307,6 +313,7 @@ class BhvPenaltyKick:
         #actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
 
         return actions
+    
     def doGoalie(agent: IAgent):
         SP = agent.serverParams
         wm = agent.wm
@@ -490,7 +497,7 @@ class BhvPenaltyKick:
             # too far
             return False
         
-        opp_goalie = Player(Tools().OpponentGoalie(agent))
+        opp_goalie = Player(Tools.OpponentGoalie(agent))
         
         if not opp_goalie:
             shot_c = Vector2D(SP.pitch_half_length,0.0)
