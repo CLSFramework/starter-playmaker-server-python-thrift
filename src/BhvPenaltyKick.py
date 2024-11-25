@@ -115,7 +115,7 @@ class BhvPenaltyKick:
                 actions.append(PlayerAction(neck_turn_to_ball=Neck_TurnToBall()))
             '''else :
                 
-                opp_goalie = Player(Tools().OpponentGoalie(agent))
+                opp_goalie = Player(Tools.OpponentGoalie(agent))
                 if opp_goalie :
                     agent.add_action(PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position)))
                     agent.add_log_text(LoggerLevel.TEAM, "neck to goalie")
@@ -146,7 +146,7 @@ class BhvPenaltyKick:
         # turn to the ball to get the maximal kick rate
         if abs(wm.ball.angle_from_self - wm.myself.body_direction) > 0.3:
             
-            opp_goalie = Player(Tools().OpponentGoalie(agent))
+            opp_goalie = Player(Tools.OpponentGoalie(agent))
             if opp_goalie :
                 actions.append((PlayerAction(neck_turn_to_point=Neck_TurnToPoint(opp_goalie.position))))
             else :
@@ -203,7 +203,7 @@ class BhvPenaltyKick:
         penalty_abs_x = SP.their_penalty_area_line_x
 
         
-        opp_goalie = Player(Tools().OpponentGoalie(agent))
+        opp_goalie = Player(Tools.OpponentGoalie(agent))
 
         goalie_max_speed = 1.0
 
