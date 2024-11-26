@@ -85,7 +85,7 @@ class BhvPenaltyKick:
         
         place_angle = 0.0
 
-        if not BhvGoToPlacedBall(place_angle).Decision(agent) == []:
+        if BhvGoToPlacedBall(place_angle).Decision(agent) == []:
             actions.append((PlayerAction(body_turn_to_point= Body_TurnToPoint(RpcVector2D(goal_c.x(), goal_c.y())))))
             if opp_goalie :
                 actions.append((PlayerAction(neck_turn_to_point= Neck_TurnToPoint(opp_goalie.position))))
